@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M14RB-rollback-failed-core-boundary-patch |
-| Overall status | LANG_M14RB_ROLLBACK_COMPLETE |
-| Final decision | GO_ROLLBACK_COMPLETE because the failed M14 local core/site-packages boundary patch was restored from pre-M14 raw backups, hashes match backups, gateway was reloaded once through `hermes-ops run --phase LANG-M14 --risk service-change -- hermes gateway restart`, repo-side failed M14 code/test/patch artifacts were removed, full ops pytest passed, and only rollback/status docs remain modified; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, gateway moved from PID `72219` runs `8` to PID `45833` runs `9` |
+| Current task | LANG-M16-new-reset-tip-fallback-fix |
+| Overall status | LANG_M16_SCOPED_PASS_M17_BLOCKERS |
+| Final decision | GO_SCOPED_PASS for the M16-only target `gateway.reset.tip` because the real operator `/new` observation confirms the raw key no longer leaks; full `/new` UX remains `GO_PARTIAL_WITH_BLOCKERS` because `gateway.reset.header_default` still leaks, metadata labels/icons still use the old diamond style, and the tip body remains English; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, gateway remains PID `81093` |
 
 ## Task status
 
@@ -73,6 +73,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M12 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish | RED `5 failed, 21 passed`; targeted GREEN `26 passed`; full pytest PASS `48 passed`; config/plugins/diff/secret scan PASS; gated reload PASS; M12 plugin canary PASS | Final decision `GO_PARTIAL_WITH_BLOCKERS`; B-layer mappings loaded; PID `94212` -> `11332`; runs `6` -> `7`; B-layer enabled; A-layer disabled; core-bypass surfaces marked `BLOCKED_CORE_REQUIRED` |
 | LANG-M14 | NO-GO | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch | local RED/GREEN PASS; full pytest PASS `55 passed`; read-only finalization checks PASS; operator Telegram T1 BLOCKED, T2 FAIL, T3 PASS, T4 NEEDS_POLISH, T5 BLOCKED_NOT_TESTED | Final decision `NO-GO_WITH_ROLLBACK`; `/new` still leaks `gateway.reset.tip`; tool-progress bubble still shows old `terminal` styling; protected tokens preserved; rollback required but not executed due no restart/reload instruction |
 | LANG-M14RB | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch | pre/post hash verification PASS; gated restart PASS; full pytest PASS `48 passed`; `git diff --check` PASS; targeted secret scan PASS; repo cleanup PASS | Final decision `GO_ROLLBACK_COMPLETE`; restored `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` and `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/platforms/base.py`; PID `72219` -> `45833`; runs `8` -> `9`; B-layer enabled; A-layer disabled |
+| LANG-M16 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix | RED `3 failed, 1 passed`; GREEN `4 passed`; full pytest PASS `52 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset canary PASS; operator `/new` scoped observation PASS | Final decision `GO_SCOPED_PASS`; scoped target `gateway.reset.tip` PASS; full `/new` UX `GO_PARTIAL_WITH_BLOCKERS`; patched only `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` reset-tip fallback; PID `81093`; B-layer enabled; A-layer disabled; M17 blockers: `gateway.reset.header_default` raw key, metadata label/icon polish, Chinese tip body |
 
 ## Update template
 
@@ -1170,3 +1171,98 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - M14 core patch is rejected; future attempts must start from a new explicit phase and not reuse the failed repo-side patch artifacts.
 - Next task: stage only the two docs, run staged checks, commit, and push `origin main`.
+
+### Update 2026-05-29 19:40:29 CST — LANG-M16-new-reset-tip-fallback-fix
+
+- Status: DONE
+- Files changed:
+  - /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py
+  - /Users/cc/.hermes/ops/tests/test_gateway_reset_tip_fallback.py
+  - /Users/cc/.hermes/ops/patches/M16-new-reset-tip-fallback.patch
+  - /Users/cc/.hermes/ops/patches/M16-apply-core-patch.md
+  - /Users/cc/.hermes/ops/patches/M16-rollback-core-patch.md
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/*
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-final-status.md
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_gateway_reset_tip_fallback.py`
+  - result: PASS (`4 passed`)
+  - command: `python3 -m py_compile /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py`
+  - result: PASS
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`52 passed`)
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (`EXECUTED`, exit code `0`)
+  - command: `hermes gateway status`
+  - result: PASS (PID `81093`)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS
+  - command: `git diff --check`
+  - result: PASS
+  - command: `targeted high-confidence secret scan`
+  - result: PASS (`secret_scan_findings=0`)
+- Risks:
+  - Manual Telegram `/new` validation is pending and must be performed by the operator.
+  - M16 is a local site-packages patch and may be overwritten by a Hermes package update.
+- Next task: operator manually sends `/new` and reports whether `gateway.reset.tip` is absent
+
+### Update 2026-05-29 19:57:15 CST — LANG-M16-manual-new-finalization
+
+- Status: DONE
+- Final decision: GO_SCOPED_PASS
+- Scoped target:
+  - `gateway.reset.tip`: PASS; real operator `/new` observation confirms the raw key no longer leaks.
+- Full `/new` UX:
+  - GO_PARTIAL_WITH_BLOCKERS
+- Remaining blockers for M17:
+  - `gateway.reset.header_default` raw key still leaks.
+  - `Model` / `Provider` / `Context` metadata label and icon polish still use the old diamond style.
+  - Reset tip body remains English.
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/ops/tests/test_gateway_reset_tip_fallback.py
+  - /Users/cc/.hermes/ops/patches/M16-new-reset-tip-fallback.patch
+  - /Users/cc/.hermes/ops/patches/M16-apply-core-patch.md
+  - /Users/cc/.hermes/ops/patches/M16-rollback-core-patch.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-manual-telegram-finalization.md
+- Evidence:
+  - Real operator `/new` observation supplied in-thread.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-manual-telegram-finalization.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-validation-summary.md
+- Validation:
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `81093`)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; key names only, no values recorded)
+  - command: `git status --short`
+  - result: PASS (only expected M16 repo-side docs/tests/patch artifacts modified or untracked)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan over intended commit files
+  - result: PASS (`findings=0`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`52 passed`)
+- Not executed:
+  - No code edits.
+  - No gateway reload/restart.
+  - No Telegram messages sent by Codex.
+  - No slash commands executed by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No provider/model/credential/config/env/auth/session/log/state/cache/PID/lock changes.
+  - No site-packages files staged for commit.
+- Risks:
+  - M16 remains a local site-packages patch and may be overwritten by a Hermes package update.
+  - Full `/new` UX remains partial and should be handled as M17, not expanded under M16.
+- Next task: LANG-M17 for `/new` header, metadata polish, and Chinese tip body.

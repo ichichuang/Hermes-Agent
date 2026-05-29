@@ -227,3 +227,19 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 继续修补 M14 core patch；保留 repo-side patch artifacts 供后续复用；直接运行 raw `hermes gateway restart`；禁用 B-layer 或启用 A-layer；修改 provider/model/credentials。
 - Consequence: live gateway 已加载 pre-M14 core files，PID `72219` runs `8` -> PID `45833` runs `9`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled；ops tests 回到当前 repo baseline `48 passed`；M14 core patch 不进入 git history，后续 core-boundary 工作必须另开新 phase。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch/reports/M14RB-validation-summary.md`
+
+## ADR-0029 — LANG-M16 只修 `/new` reset tip fallback 和换行
+
+- Decision: 在 `LANG-M16-new-reset-tip-fallback-fix` 中进行明确授权的最小本地 site-packages patch，只修改 `gateway/run.py:_handle_reset_command` 的 reset tip 构造：当 `t("gateway.reset.tip", tip=...)` 返回空值或裸 key `gateway.reset.tip` 时使用中文 fallback tip，并在追加到 `session_info` 前强制补足换行分隔；随后通过既有 `LANG-M6` exact allowlist 的 `hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart` 加载。
+- Reason: M15 已定位 exact root cause：本机安装缺 locale catalog，`agent.i18n.t()` 回退裸 key，且 `_handle_reset_command` 直接将 `_tip_line` 拼到 `session_info` 后面。M16 用户授权明确允许只改 `gateway/run.py`，并禁止 `gateway/platforms/base.py`、M14 broad boundary transform、A-layer、Ollama、provider/model/credential/config/env 和 Telegram/slash side effects。
+- Alternatives considered: 添加 locale catalog；恢复 M14 broad boundary transform；修改 `gateway/platforms/base.py`；修改 B-layer `ops/lib/language_layer.py`；新增 M16 allowlist 到 `phase_gate.py`；直接运行 raw `hermes gateway restart`。
+- Consequence: 本地 core patch 已加载到 live gateway；PID `45833` runs `9` -> PID `81093` runs `11`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled；RED/GREEN、full pytest、config/plugins/status、diff check、secret scan 和 post-reload canary 均 PASS；最终决策为 `GO_PENDING_MANUAL_TELEGRAM`，等待 operator 手动发送 `/new` 验证 live Telegram 输出。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-validation-summary.md`
+
+## ADR-0030 — LANG-M16 以 scoped PASS 关闭并把完整 `/new` UX 留给 M17
+
+- Decision: 将 `LANG-M16-new-reset-tip-fallback-fix` 从 `GO_PENDING_MANUAL_TELEGRAM` 更新为 `GO_SCOPED_PASS`；`gateway.reset.tip` scoped target 判定 `PASS`，完整 `/new` UX 判定 `GO_PARTIAL_WITH_BLOCKERS`。
+- Reason: 操作员提供真实 `/new` 观察，`gateway.reset.tip` raw key 不再泄漏，符合 M16 唯一 scoped 目标；同时 `gateway.reset.header_default` raw key、metadata label/icon polish、中文 tip body 仍未解决，超出 M16 范围。
+- Alternatives considered: 将剩余 `/new` UX polish 纳入 M16；因剩余 blocker 将 M16 判定为 `NO-GO`；由 Codex 发送 Telegram 或运行 slash command 补测；重启或 reload gateway。
+- Consequence: M16 只提交 repo-side docs/tests/patch artifacts，不提交 site-packages 文件；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway 保持 PID `81093`；M17 应聚焦 `gateway.reset.header_default`、metadata label/icon polish 和中文 tip body。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-manual-telegram-finalization.md`

@@ -1,0 +1,15 @@
+--- gateway/run.py.pre-m16
++++ gateway/run.py
+@@ -8385,6 +8385,11 @@
+         # Append a random tip to the reset message
+         try:
+             from hermes_cli.tips import get_random_tip
+-            _tip_line = t("gateway.reset.tip", tip=get_random_tip())
++            _tip = get_random_tip()
++            _tip_line = t("gateway.reset.tip", tip=_tip)
++            if not _tip_line or not _tip_line.strip() or _tip_line.strip() == "gateway.reset.tip":
++                _tip_line = f"✨ 提示：{_tip or '新会话已就绪。'}"
++            if _tip_line and not _tip_line.startswith(("\n", "\r")):
++                _tip_line = f"\n\n{_tip_line}"
+         except Exception:
+             _tip_line = ""
