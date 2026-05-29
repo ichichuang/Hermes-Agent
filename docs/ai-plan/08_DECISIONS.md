@@ -107,3 +107,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: Codex 主动发送 Telegram 测试；直接给出 GO；先做 B-layer wording patch。
 - Consequence: B-layer 保持已启用，A-layer 保持禁用，gateway 只读检查稳定；最终 M7 决策保持 `BLOCKED`，可在收到摘要后更新为 `GO`、`GO_WITH_POLISH` 或 `NO-GO`。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-final-status.md`
+
+## ADR-0014 — LANG-M7 完成人工观察后给出 GO_WITH_POLISH
+
+- Decision: 将 `LANG-M7-b-layer-observation-and-polish` 从 `BLOCKED` 更新为 `GO_WITH_POLISH`；B-layer 保持启用，A-layer 保持禁用，不应用 wording patch。
+- Reason: 操作员提供了 M7-01 到 M7-06 的完整 Telegram 人工观察摘要；未观察到 protected-token corruption、gateway issue、A-layer activation、Ollama/local-model call、provider/model change、credential change 或 unsafe behavior，但英文普通回复和代码块呈现仍需润色。
+- Alternatives considered: 因 M7-02/M7-05 存在 polish 问题而给出 `NO-GO`；在本轮直接修改 B-layer wording；继续保持 `BLOCKED`。
+- Consequence: M7 观察阶段关闭，后续 polish 必须作为单独显式任务执行，并继续保护 commands、paths、URLs、code blocks、JSON/YAML keys、model/provider names。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-final-status.md`

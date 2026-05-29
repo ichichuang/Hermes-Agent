@@ -9,8 +9,8 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
 | Current task | LANG-M7 |
-| Overall status | LANG_M7_BLOCKED_PARTIAL_OPERATOR_OBSERVATIONS |
-| Final decision | BLOCKED because protected-token observations remain incomplete; observed B-layer cases safe; wording polish recommended; B-layer enabled; A-layer disabled |
+| Overall status | LANG_M7_GO_WITH_POLISH_OPERATOR_OBSERVATIONS_COMPLETE |
+| Final decision | GO_WITH_POLISH because all M7 observations are complete, no protected-token corruption or gateway issue was observed, B-layer remains safe/enabled, A-layer remains disabled, and wording/code-block polish is recommended |
 
 ## Task status
 
@@ -62,7 +62,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | D6.E | DONE | /Users/cc/HermesArchive/hermes-new-20260527_211109/reports/D6-autostart-final.md | `D6_CURRENT_BASELINE_GO`; `POST_REBOOT_GO` verified | Final D6 reports |
 | D6.F | DONE | /Users/cc/HermesArchive/hermes-new-20260527_211109/phases/D6.F-post-autostart-validation/redaction-scan.json | D6 redaction scan PASS; findings `0` | Post-autostart validation |
 | LANG-M6 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M6-gated-b-layer-live-activation | B-layer canary PASS; gateway running; audit verify PASS; pytest PASS | Gated B-layer live activation; A-layer disabled |
-| LANG-M7 | BLOCKED | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M7-b-layer-observation-and-polish | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `11127` | Partial operator screenshot parsed; M7-01 PASS, M7-02 NEEDS_POLISH, protected-token cases remain BLOCKED; no runtime side effects |
+| LANG-M7 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M7-b-layer-observation-and-polish | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `11127`; `git status --short` checked | Final decision `GO_WITH_POLISH`; all M7 observations complete; M7-01 PASS, M7-02 NEEDS_POLISH, M7-03 PASS, M7-04 PASS, M7-05 NEEDS_POLISH, M7-06 PASS; no protected-token corruption; no runtime side effects |
 
 ## Update template
 
@@ -579,3 +579,34 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - Manual observations remain incomplete for file paths, URLs, code blocks, and JSON/YAML protected-token preservation.
   - English normal prompt is safe but needs wording polish; no polish applied.
 - Next task: operator provides missing protected-token observations, or explicitly narrows M7 scope before requesting wording patch
+
+### Update 2026-05-29 10:58:11 CST — LANG-M7-b-layer-observation-and-polish
+
+- Status: DONE
+- Files changed:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-polish-recommendations.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M7-b-layer-observation-and-polish/phase-report.md
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-polish-recommendations.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M7-b-layer-observation-and-polish/phase-report.md
+- Validation:
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled, version `0.2.0`)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; secret values not recorded)
+  - command: `hermes gateway status` before report update
+  - result: PASS (service loaded, PID `11127`)
+  - command: `hermes gateway status` after report update
+  - result: PASS (service loaded, PID `11127`)
+  - command: `git status --short`
+  - result: PASS (expected docs ledger changes only)
+- Risks:
+  - English ordinary replies need wording polish; no polish applied in this task.
+  - Code-block formatting fidelity needs polish; no B-layer code change was applied.
+- Next task: open a separate explicit polish implementation task if the operator wants B-layer wording changes
