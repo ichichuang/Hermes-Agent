@@ -1,0 +1,12 @@
+{
+  "archive_id": "hermes-new-YYYYMMDD_HHMMSS",
+  "created_at": "YYYY-MM-DDTHH:MM:SS-07:00",
+  "hermes_home": "/Users/cc/.hermes",
+  "archive_root": "/Users/cc/HermesArchive/hermes-new-YYYYMMDD_HHMMSS",
+  "plan_version": "2026-05-27",
+  "decision": "PENDING",
+  "side_effects_executed": false,
+  "phases": [],
+  "config_hashes": {},
+  "secret_policy": "hash-and-redacted-key-names-only"
+}

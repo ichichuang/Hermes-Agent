@@ -1,0 +1,9 @@
+# Suggested local Codex configuration for the Hermes upgrade workspace.
+# This file is intentionally conservative.
+
+[features]
+goals = true
+
+# Keep command network access disabled by default. Source refresh tasks may request approval.
+[sandbox_workspace_write]
+network_access = false

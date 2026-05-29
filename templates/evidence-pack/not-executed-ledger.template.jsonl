@@ -1,0 +1,1 @@
+{"timestamp":"YYYY-MM-DDTHH:MM:SS-07:00","phase":"P0.A6","risk":"service-change","command":"/bin/launchctl enable gui/501/ai.hermes.gateway","decision":"NOT_EXECUTED","reason":"hard-stop: missing phase gate evidence","evidence_path":"phases/P0.A6/decision.json"}

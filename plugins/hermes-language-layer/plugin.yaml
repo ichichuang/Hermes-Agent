@@ -1,0 +1,8 @@
+name: hermes-language-layer
+version: "0.2.0"
+description: Safe Chinese UX renderer and advisory canonical task-card layer.
+author: local
+kind: standalone
+provides_hooks:
+  - transform_llm_output
+  - pre_llm_call

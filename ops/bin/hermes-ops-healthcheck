@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="/Users/cc/.hermes"
+CLI="$ROOT/ops/bin/hermes-ops"
+
+"$CLI" status
+"$CLI" launchd inspect --phase P0.A7
+"$CLI" validate live --phase P1.B2 --dry-run
+"$CLI" security baseline --phase P1.B5
+"$CLI" audit verify
+"$CLI" archive refresh

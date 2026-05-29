@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "b_enabled": true,
+  "a_enabled": false,
+  "local_model_enabled": false,
+  "ollama_base_url": "http://127.0.0.1:11434/v1",
+  "timeout_ms": 5000,
+  "notes": "LANG-M6 activates B-layer only. A-layer and local model conversion remain disabled."
+}
