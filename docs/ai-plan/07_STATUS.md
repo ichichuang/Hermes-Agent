@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M9 |
-| Overall status | LANG_M9_NO_GO_CODE_BLOCK_PROTECTION |
-| Final decision | NO-GO_CODE_BLOCK_PROTECTION because real operator Telegram screenshot observations classify T1 PASS, T2 FAIL, T3 PASS, T4 PASS; fenced code block shape was not preserved and execution output was inferred despite "do not execute it"; B-layer remains enabled, A-layer remains disabled, gateway remains loaded/running with PID `67527` and runs `4`; no automatic rollback because gateway is stable and T1/T3/T4 remain useful |
+| Current task | LANG-M10R |
+| Overall status | LANG_M10R_GO_RELOADED_REVALIDATED |
+| Final decision | GO_RELOADED_REVALIDATED because the M10 code-block preservation fix was loaded through gated `hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`; PID/runs changed from `67527`/`4` to `13263`/`5`; gateway/plugins/config/canary/full pytest/diff/secret scan passed; B-layer remains enabled and A-layer remains disabled |
 
 ## Task status
 
@@ -66,6 +66,8 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M8 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish | Targeted RED `2 failed, 8 passed`; targeted GREEN `10 passed`; full pytest PASS `32 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted secret scan PASS; M8R reload/revalidation PASS | Final decision `GO_RELOADED_REVALIDATED`; minimal B-layer polish patch applied and loaded by M8R |
 | LANG-M8R | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation | pre-state PASS; gated reload PASS; post-state PASS; M8R canary PASS; full pytest PASS `32 passed`; `git diff --check` PASS; targeted secret scan PASS | Reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `11127` -> `67527`; runs `3` -> `4`; B-layer enabled; A-layer disabled |
 | LANG-M9 | NO-GO | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `67527`; `git status --short` checked; `git diff --check` PASS; B-layer enabled; A-layer disabled | Final decision `NO-GO_CODE_BLOCK_PROTECTION`; T1 PASS, T2 FAIL, T3 PASS, T4 PASS; path/URL/YAML keys pass, fenced code block shape fails; no rollback; recommend focused LANG-M10 code-block preservation patch |
+| LANG-M10 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix | RED `3 failed, 13 passed`; GREEN `17 passed`; full pytest PASS `39 passed`; M10R reload/revalidation PASS; B-layer enabled; A-layer disabled | Final decision `GO_RELOADED_REVALIDATED`; source patch complete and loaded by M10R |
+| LANG-M10R | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation | pre-state PASS; gated reload PASS; post-state PASS; M10R canary PASS; full pytest PASS `39 passed`; `git diff --check` PASS; targeted secret scan PASS | Reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `67527` -> `13263`; runs `4` -> `5`; B-layer enabled; A-layer disabled |
 
 ## Update template
 
@@ -724,3 +726,82 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - M9 is not accepted until a focused code-block preservation patch is implemented and re-observed.
   - No automatic rollback was performed because gateway is stable and T1/T3/T4 passed.
 - Next task: LANG-M10 focused code-block preservation patch
+
+### Update 2026-05-29 13:14:16 CST — LANG-M10-code-block-preservation-fix
+
+- Status: DONE
+- Final decision: GO_PENDING_RELOAD
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-fix-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-final-status.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-fix-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-final-status.md
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_language_layer.py`
+  - result: PASS (`17 passed`) after RED `3 failed, 13 passed`
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`39 passed`)
+  - command: `hermes config check`
+  - result: PASS
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `67527`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS
+- Risks:
+  - Live gateway PID `67527` has not loaded the patched module; live effect requires a future gated reload/revalidation.
+  - No Telegram live observation was performed in M10.
+- Next task: separate gated reload/revalidation phase if operator authorizes gateway reload
+
+### Update 2026-05-29 13:30:40 CST — LANG-M10R-gated-reload-revalidation
+
+- Status: DONE
+- Final decision: GO_RELOADED_REVALIDATED
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/reports/M10R-reload-revalidation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-validation-summary.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/pre-state/runtime-state.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/reload/hermes-ops-run.stdout.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/post-state/runtime-state.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/post-state/m10r-plugin-canary.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/validation/validation-summary.json
+- Validation:
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (exit `0`; PID `67527` -> `13263`; runs `4` -> `5`)
+  - command: `hermes gateway status`
+  - result: PASS
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS
+  - command: M10R plugin canary
+  - result: PASS (fenced Python unchanged; forbidden inferred output removed; protected paths/URLs/slash commands/JSON/YAML keys/model/provider names preserved; ordinary English renders natural Chinese; A-layer returns `None`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`39 passed`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS after refining a documented `task-orchestrator` false positive
+- Risks:
+  - No Telegram message was sent; validation is gateway reload plus local plugin canary, not external chat observation.
+  - `LANG-M10R` reused the existing `LANG-M6` exact allowlist because no separate M10R allowlist exists in `hermes-ops`.
+- Next task: stage only the four requested repo files, run staged checks, commit, and push `origin main`

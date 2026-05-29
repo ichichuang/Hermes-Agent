@@ -38,6 +38,12 @@ PATH_PATTERN = re.compile(
 )
 CONFIG_KEY_PATTERN = re.compile(r"\b[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+\b")
 SHELL_COMMAND_PATTERN = re.compile(r"\b(?:hermes|launchctl|python3?|curl|git|pytest|shasum|ollama)\s+[^\n`]+")
+NO_EXECUTION_INTENT_PATTERN = re.compile(
+    r"(?i)\b(?:do\s+not|don't|dont|without)\s+(?:run|execute|running|executing)\b"
+)
+INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
+    r"(?is)\n{1,3}(?:Output|Result|Execution output|输出|运行结果)\s*[:：][\s\S]*$"
+)
 
 
 @dataclass(frozen=True)
@@ -121,6 +127,18 @@ def _is_pure_yaml_like(text: str) -> bool:
         return False
     keyed = sum(1 for line in meaningful if re.match(r"^\s*[A-Za-z0-9_.-]+\s*:", line))
     return keyed >= max(2, len(meaningful) // 2)
+
+
+def _strip_forbidden_execution_output(text: str) -> str:
+    fence_matches = list(FENCED_CODE_PATTERN.finditer(text))
+    if not fence_matches or not NO_EXECUTION_INTENT_PATTERN.search(text):
+        return text
+    last_fence_end = fence_matches[-1].end()
+    tail = text[last_fence_end:]
+    inferred = INFERRED_EXECUTION_OUTPUT_PATTERN.search(tail)
+    if not inferred:
+        return text
+    return (text[:last_fence_end] + tail[: inferred.start()]).rstrip()
 
 
 def should_bypass_input(text: str) -> str | None:
@@ -249,6 +267,9 @@ def render_b_layer(text: str, *, use_ollama: bool = False, model: str | None = N
     bypass_reason = should_bypass_input(text)
     if bypass_reason:
         return RenderResult(text=text, changed=False, engine="bypass", bypass_reason=bypass_reason)
+    if "```" in text:
+        rendered = _strip_forbidden_execution_output(text)
+        return RenderResult(text=rendered, changed=(rendered != text), engine="preserve_fenced_code")
     if _mostly_chinese(text):
         return RenderResult(text=text, changed=False, engine="already_zh")
 
@@ -260,7 +281,7 @@ def render_b_layer(text: str, *, use_ollama: bool = False, model: str | None = N
         rendered = restore_text(candidate, protected.spans)
         return RenderResult(text=rendered, changed=(rendered != text), engine="fixed_map")
 
-    if "```" in text or _is_pure_json(text) or _is_pure_yaml_like(text):
+    if _is_pure_json(text) or _is_pure_yaml_like(text):
         return RenderResult(text=text, changed=False, engine="preserve_structured")
 
     if _mostly_english(text):

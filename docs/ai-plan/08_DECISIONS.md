@@ -139,3 +139,19 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 因 T1/T3/T4 通过而给出 `GO_WITH_POLISH`；自动 rollback M8 polish；由 Codex 发送 Telegram 补测；启用 A-layer 或调用 Ollama 修复。
 - Consequence: 不自动 rollback，因为 gateway 稳定且 T1/T3/T4 的 B-layer 修复有效；B-layer 保持启用，A-layer 保持禁用，gateway 保持 PID `67527`、runs `4`；后续应开 `LANG-M10` 聚焦修复 fenced code block preservation 和 forbidden execution inference。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-final-status.md`
+
+## ADR-0018 — LANG-M10 fenced code blocks bypass B-layer rewrites before reload
+
+- Decision: 在 `LANG-M10` 中将 B-layer fenced code block 处理前置到 fixed-map、deterministic English rendering 和 optional local-model rendering 之前；含 triple-backtick 的响应默认整段保留，仅当响应自身包含 no-run/no-execute 语义且追加 `Output:`/`Result:` 类执行结果时，删除该推断结果段。
+- Reason: M9 证明 fenced code block 是 protected-token 类高优先级对象；原实现先执行 fixed English rewrite，导致带代码块的响应仍可能被 B-layer 改写。B-layer 没有可靠用户原始意图上下文，因此最小安全策略是代码块优先保护。
+- Alternatives considered: 启用 A-layer 注入更强 prompt；调用 Ollama 重写；回滚 M8；修改 Telegram/provider/Hermes core；自动 reload gateway。
+- Consequence: 非代码英文回复渲染保持不变；带 fenced code block 的英文说明不再被 B-layer 翻译，优先保证代码块形状、语言 tag 和内容原样；源码验证通过但 live gateway PID `67527` 需要后续 gated reload/revalidation 才能生效。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix/reports/M10-final-status.md`
+
+## ADR-0019 — LANG-M10R 复用 LANG-M6 gateway restart 门禁加载 M10
+
+- Decision: 在 `LANG-M10R-gated-reload-revalidation` 中通过现有 `hermes-ops` exact allowlist 执行 `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`，并将 M10R pre-state、rollback snapshot、reload、post-state、canary、validation 证据记录到独立 M10R phase 目录。
+- Reason: 当前 `hermes-ops` 仅在 `LANG-M6` allowlist 中允许 exact `hermes gateway restart`；用户目标要求把已验证 M10 fix 加载到 live gateway，同时禁止 raw hard-stop 操作、launchctl enable/bootstrap/bootout、A-layer、Ollama、Telegram 外发和 provider/model/credential 变更。
+- Alternatives considered: 直接运行 raw `hermes gateway restart`；新增 M10R allowlist 代码；使用 `launchctl kickstart`；跳过 reload 保持 `GO_PENDING_RELOAD`。
+- Consequence: M10 patch 已加载到 live gateway；gateway PID `67527` -> `13263`，runs `4` -> `5`；B-layer 保持启用，A-layer 保持禁用，local model 保持禁用；M10R canary、full pytest、diff check 和 secret scan 均 PASS。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/reports/M10R-reload-revalidation.md`

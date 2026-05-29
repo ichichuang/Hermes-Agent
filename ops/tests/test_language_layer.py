@@ -4,6 +4,7 @@ import importlib.util
 import os
 from pathlib import Path
 
+import language_layer
 from language_layer import format_advisory_context, normalize_to_task_card, render_b_layer
 
 
@@ -59,6 +60,63 @@ def test_b_layer_preserves_python_fence_without_execution_output() -> None:
     assert "输出" not in result.text
 
 
+def test_b_layer_preserves_fenced_python_block_exactly_with_status_text() -> None:
+    text = 'Configuration saved.\n```python\nprint("hello hermes")\n```\nDo not execute it.'
+    result = render_b_layer(text)
+    assert result.text == text
+    assert result.changed is False
+
+
+def test_b_layer_does_not_infer_execution_result_for_fenced_code(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def fake_ollama_render_to_zh(text: str, originals: tuple[str, ...], *, model: str | None, timeout_ms: int) -> str:
+        calls.append(text)
+        return '输出：hello hermes'
+
+    monkeypatch.setattr(language_layer, "_ollama_render_to_zh", fake_ollama_render_to_zh)
+    text = 'Configuration saved.\n```python\nprint("hello hermes")\n```\nDo not execute it.'
+    result = render_b_layer(text, use_ollama=True, model="qwen3-coder:30b-a3b-instruct-q4km")
+    assert result.text == text
+    assert result.changed is False
+    assert calls == []
+    assert "输出：hello hermes" not in result.text
+    assert "Output: hello hermes" not in result.text
+
+
+def test_b_layer_removes_inferred_execution_output_when_told_not_to_execute() -> None:
+    text = 'Use this script:\n```python\nprint("hello hermes")\n```\nDo not execute it.\n\nOutput:\nhello hermes'
+    result = render_b_layer(text)
+    assert result.text == 'Use this script:\n```python\nprint("hello hermes")\n```\nDo not execute it.'
+    assert result.changed is True
+    assert result.text.count("hello hermes") == 1
+    assert "Output:" not in result.text
+
+
+def test_b_layer_preserves_multiple_fenced_blocks_exactly() -> None:
+    text = (
+        "Configuration saved.\n"
+        "```python\n"
+        "print(\"hello hermes\")\n"
+        "```\n"
+        "```yaml\n"
+        "display:\n"
+        "  language: en\n"
+        "```\n"
+        "No action is required."
+    )
+    result = render_b_layer(text)
+    assert result.text == text
+    assert result.changed is False
+
+
+def test_b_layer_preserves_code_block_with_surrounding_chinese_explanation() -> None:
+    text = '下面是示例代码，不要执行：\n```python\nprint("hello hermes")\n```\n保持原样即可。'
+    result = render_b_layer(text)
+    assert result.text == text
+    assert result.changed is False
+
+
 def test_b_layer_preserves_paths_urls_commands_keys_and_model_names() -> None:
     text = (
         "Check /Users/cc/.hermes/config.yaml, visit https://example.com/docs, "
@@ -74,6 +132,37 @@ def test_b_layer_preserves_paths_urls_commands_keys_and_model_names() -> None:
     assert "DeepSeek" in result.text
     assert "Hermes 返回了英文说明：" not in result.text
     assert "Check " not in result.text
+
+
+def test_b_layer_preserves_yaml_keys_slash_commands_models_and_provider_names() -> None:
+    text = (
+        "Check display.language and approvals.destructive_slash_confirm, then run /sethome "
+        "while keeping deepseek-chat on DeepSeek and qwen3-coder:30b-a3b-instruct-q4km disabled."
+    )
+    result = render_b_layer(text)
+    assert "display.language" in result.text
+    assert "approvals.destructive_slash_confirm" in result.text
+    assert "/sethome" in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+    assert "qwen3-coder:30b-a3b-instruct-q4km" in result.text
+
+
+def test_b_layer_preserves_path_url_and_yaml_document_shape() -> None:
+    text = (
+        "```yaml\n"
+        "display:\n"
+        "  language: en\n"
+        "approvals:\n"
+        "  destructive_slash_confirm: true\n"
+        "path: /Users/cc/.hermes/config.yaml\n"
+        "url: http://127.0.0.1:11434/v1\n"
+        "```\n"
+        "Do not execute /sethome."
+    )
+    result = render_b_layer(text)
+    assert result.text == text
+    assert result.changed is False
 
 
 def test_a_layer_bypasses_slash_and_secret_like_inputs() -> None:
