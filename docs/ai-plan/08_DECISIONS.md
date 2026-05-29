@@ -155,3 +155,43 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 直接运行 raw `hermes gateway restart`；新增 M10R allowlist 代码；使用 `launchctl kickstart`；跳过 reload 保持 `GO_PENDING_RELOAD`。
 - Consequence: M10 patch 已加载到 live gateway；gateway PID `67527` -> `13263`，runs `4` -> `5`；B-layer 保持启用，A-layer 保持禁用，local model 保持禁用；M10R canary、full pytest、diff check 和 secret scan 均 PASS。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation/reports/M10R-reload-revalidation.md`
+
+## ADR-0020 — LANG-M11 用 B-layer volatile caller context 修复 live 输入保护
+
+- Decision: 在 `LANG-M11-live-b-layer-regression-fix` 中只修改 `ops/lib/language_layer.py` 与测试，通过 `render_b_layer(source_text=...)` 和 bounded caller-context lookup 获取当前 turn 的 `user_message`，用于 B-layer fenced code 保护；不修改 plugin wrapper，不启用 A-layer，不注入 LLM context，不持久化用户原文。
+- Reason: M11 live 失败证明输出侧可能已经丢失原始 fenced block；仅看 `response_text` 无法可靠恢复代码块形状和 no-execute 意图。当前任务允许编辑范围不包含 `plugins/hermes-language-layer/__init__.py`，但 plugin wrapper 的 `kwargs` 中仍有当前调用的 `user_message`，可在库内做限定深度的 volatile lookup。
+- Alternatives considered: 修改 plugin wrapper 显式传入 `user_message`；启用 A-layer 注入更强 prompt；调用 Ollama；修改 Hermes core transform hook；对 `print("hello hermes")` 做硬编码推断。
+- Consequence: M11 patch 已通过 gated reload 加载；gateway PID `13263` -> `94212`，runs `5` -> `6`；B-layer 保持启用，A-layer 保持禁用，local model 保持禁用；本地 plugin canary 覆盖 T1/T2，最终决策为 `GO_PENDING_MANUAL_TELEGRAM`。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md`
+
+## ADR-0021 — LANG-M11 人工 Telegram 摘要缺失时不提交
+
+- Decision: 将 `LANG-M11-manual-telegram-finalization` 记为 `BLOCKED_PENDING_OPERATOR_SUMMARY`，不执行 `git commit` 或 `git push`。
+- Reason: 本轮收到的 operator retest summary 是字面占位符 `PASTE_SUMMARY_HERE`，无法证明 T1-T4 Telegram live 输出 PASS、NEEDS_POLISH 或 FAIL。根据 M11 gate，缺人工 Telegram 证据不能接受 live 修复。
+- Alternatives considered: 仅凭本地 plugin canary 继续 commit/push；由 Codex 主动发送 Telegram 测试；将占位符解释为 PASS。
+- Consequence: B-layer 继续启用，A-layer 继续禁用，gateway 保持 PID `94212`；repo 四个文件仍为未提交修改，等待真实 T1-T4 人工摘要后再判定 GO/GO_WITH_POLISH/NO-GO。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md`
+
+## ADR-0022 — LANG-M11 重复占位符摘要继续阻塞提交
+
+- Decision: 第二次收到的 operator retest summary 仍为字面占位符 `PASTE_SUMMARY_HERE`，因此维持 `BLOCKED_PENDING_OPERATOR_SUMMARY`，不执行 `git commit` 或 `git push`。
+- Reason: 该输入没有包含 T1-T4 Telegram 输出事实，无法验证自然中文、fenced code block、path/URL、YAML key/value 和 `/sethome` token。
+- Alternatives considered: 复用上一次本地 canary 作为人工 Telegram 验收；将重复占位符视作无变化 PASS。
+- Consequence: B-layer 继续启用，A-layer 继续禁用，gateway 保持 PID `94212`；等待真实人工摘要。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md`
+
+## ADR-0023 — LANG-M11 第三次占位符摘要触发 goal blocked
+
+- Decision: 第三次收到的 operator retest summary 仍为字面占位符 `PASTE_SUMMARY_HERE`，继续维持 `BLOCKED_PENDING_OPERATOR_SUMMARY`，不执行 `git commit` 或 `git push`，并将线程 goal 标记为 blocked。
+- Reason: 同一 blocking condition 已连续三次出现；缺少 T1-T4 Telegram 输出事实，无法完成 acceptance gate。
+- Alternatives considered: 继续保持 goal active 并重复报告阻塞；仅凭本地 canary 接受并提交。
+- Consequence: B-layer 继续启用，A-layer 继续禁用，gateway 保持 PID `94212`；repo 四个文件仍为未提交修改，等待真实人工摘要后可恢复。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md`
+
+## ADR-0024 — LANG-M11 真实 Telegram retest 后接受为 GO_WITH_POLISH
+
+- Decision: 将 `LANG-M11-manual-telegram-finalization` 从 `BLOCKED_PENDING_OPERATOR_SUMMARY` 更新为 `GO_WITH_POLISH`，并按用户授权继续执行四个白名单 repo 文件的 stage、staged checks、commit 和 `origin main` push。
+- Reason: 操作员提供了真实 Telegram retest 观察：T1 English status reply PASS；T2 fenced code block PASS；T3 path/URL PASS_WITH_CAUTION；T4 YAML and `/sethome` PASS_WITH_CAUTION。未观察到 gateway issue 或 protected-token corruption，B-layer 保持启用，A-layer 保持禁用。
+- Alternatives considered: 将 T3/T4 caution 降级为 blocking `NO-GO`；把 schema 外的 `PASS_WITH_CAUTION` 改写为 `PASS`；等待 Codex 主动 Telegram 补测；启用 A-layer 或调用 Ollama。
+- Consequence: M11 fix 可接受并发布；T3 的 "check" prompt tool-trigger 行为和 T4 的 English interrupt/tool status message 作为后续 gateway/system-message polish 跟踪，不阻塞本次 B-layer regression fix。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md`

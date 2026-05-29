@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import os
 import re
 import time
@@ -39,7 +40,10 @@ PATH_PATTERN = re.compile(
 CONFIG_KEY_PATTERN = re.compile(r"\b[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+\b")
 SHELL_COMMAND_PATTERN = re.compile(r"\b(?:hermes|launchctl|python3?|curl|git|pytest|shasum|ollama)\s+[^\n`]+")
 NO_EXECUTION_INTENT_PATTERN = re.compile(
-    r"(?i)\b(?:do\s+not|don't|dont|without)\s+(?:run|execute|running|executing)\b"
+    r"(?i)(?:\b(?:do\s+not|don't|dont|without)\s+(?:run|execute|running|executing)\b|不要[^。\n]*(?:执行|运行))"
+)
+CODE_BLOCK_PRESERVE_INTENT_PATTERN = re.compile(
+    r"(?i)(?:不要[^。\n]*(?:改写|修改)[^。\n]*代码块|do\s+not\s+(?:rewrite|modify|change)[^.\n]*code\s+block)"
 )
 INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
     r"(?is)\n{1,3}(?:Output|Result|Execution output|输出|运行结果)\s*[:：][\s\S]*$"
@@ -129,9 +133,13 @@ def _is_pure_yaml_like(text: str) -> bool:
     return keyed >= max(2, len(meaningful) // 2)
 
 
-def _strip_forbidden_execution_output(text: str) -> str:
+def _strip_forbidden_execution_output(text: str, *, source_text: str | None = None) -> str:
     fence_matches = list(FENCED_CODE_PATTERN.finditer(text))
-    if not fence_matches or not NO_EXECUTION_INTENT_PATTERN.search(text):
+    no_execution_requested = bool(
+        NO_EXECUTION_INTENT_PATTERN.search(text)
+        or (isinstance(source_text, str) and NO_EXECUTION_INTENT_PATTERN.search(source_text))
+    )
+    if not fence_matches or not no_execution_requested:
         return text
     last_fence_end = fence_matches[-1].end()
     tail = text[last_fence_end:]
@@ -139,6 +147,52 @@ def _strip_forbidden_execution_output(text: str) -> str:
     if not inferred:
         return text
     return (text[:last_fence_end] + tail[: inferred.start()]).rstrip()
+
+
+def _source_requests_code_block_preservation(source_text: str) -> bool:
+    return bool(
+        FENCED_CODE_PATTERN.search(source_text)
+        and (
+            CODE_BLOCK_PRESERVE_INTENT_PATTERN.search(source_text)
+            or NO_EXECUTION_INTENT_PATTERN.search(source_text)
+        )
+    )
+
+
+def _restore_source_fenced_blocks(text: str, source_text: str | None) -> str | None:
+    if not isinstance(source_text, str) or not _source_requests_code_block_preservation(source_text):
+        return None
+    if is_secret_like(source_text):
+        return None
+    blocks = tuple(match.group(0) for match in FENCED_CODE_PATTERN.finditer(source_text))
+    if not blocks or all(block in text for block in blocks):
+        return None
+    if NO_EXECUTION_INTENT_PATTERN.search(source_text):
+        lead = "我会保留代码块原样，不执行它："
+    else:
+        lead = "我会保留代码块原样："
+    return lead + "\n" + "\n\n".join(blocks)
+
+
+def _volatile_source_text_from_hook_context() -> str | None:
+    frame = inspect.currentframe()
+    try:
+        caller = frame.f_back if frame is not None else None
+        depth = 0
+        while caller is not None and depth < 5:
+            local_kwargs = caller.f_locals.get("kwargs")
+            candidates: list[Any] = []
+            if isinstance(local_kwargs, dict):
+                candidates.extend([local_kwargs.get("user_message"), local_kwargs.get("original_user_message")])
+            candidates.extend([caller.f_locals.get("user_message"), caller.f_locals.get("original_user_message")])
+            for candidate in candidates:
+                if isinstance(candidate, str) and _source_requests_code_block_preservation(candidate):
+                    return candidate
+            caller = caller.f_back
+            depth += 1
+    finally:
+        del frame
+    return None
 
 
 def should_bypass_input(text: str) -> str | None:
@@ -236,6 +290,7 @@ FIXED_B_REWRITES = (
 )
 
 FIXED_ENGLISH_SENTENCE_REWRITES = {
+    "Right now Hermes is running one thing:": "Hermes 当前只有一项正在运行：",
     "The gateway is running normally.": "网关正在正常运行。",
     "No action is required.": "无需执行操作。",
     "No action is needed.": "无需执行操作。",
@@ -260,15 +315,52 @@ def _deterministic_english_to_zh(text: str) -> str | None:
     sentences = [sentence for sentence in re.split(r"(?<=[.!?])\s+", stripped) if sentence]
     if sentences and all(sentence in FIXED_ENGLISH_SENTENCE_REWRITES for sentence in sentences):
         return "".join(FIXED_ENGLISH_SENTENCE_REWRITES[sentence] for sentence in sentences)
+    lines = stripped.splitlines()
+    if lines and lines[0] == "Right now Hermes is running one thing:":
+        rendered_lines: list[str] = []
+        changed = False
+        for line in lines:
+            if not line.strip():
+                rendered_lines.append(line)
+                continue
+            prefix = ""
+            body = line.strip()
+            if body.startswith("- "):
+                prefix = "- "
+                body = body[2:]
+            rewritten = FIXED_ENGLISH_SENTENCE_REWRITES.get(body)
+            if rewritten:
+                rendered_lines.append(prefix + rewritten)
+                changed = True
+            else:
+                rendered_lines.append(line)
+        if changed:
+            return "\n".join(rendered_lines)
     return None
 
 
-def render_b_layer(text: str, *, use_ollama: bool = False, model: str | None = None, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> RenderResult:
+def render_b_layer(
+    text: str,
+    *,
+    source_text: str | None = None,
+    use_ollama: bool = False,
+    model: str | None = None,
+    timeout_ms: int = DEFAULT_TIMEOUT_MS,
+) -> RenderResult:
     bypass_reason = should_bypass_input(text)
     if bypass_reason:
         return RenderResult(text=text, changed=False, engine="bypass", bypass_reason=bypass_reason)
+    if source_text is None:
+        source_text = _volatile_source_text_from_hook_context()
+    restored_from_source = _restore_source_fenced_blocks(text, source_text)
+    if restored_from_source is not None:
+        return RenderResult(
+            text=restored_from_source,
+            changed=(restored_from_source != text),
+            engine="source_fenced_code",
+        )
     if "```" in text:
-        rendered = _strip_forbidden_execution_output(text)
+        rendered = _strip_forbidden_execution_output(text, source_text=source_text)
         return RenderResult(text=rendered, changed=(rendered != text), engine="preserve_fenced_code")
     if _mostly_chinese(text):
         return RenderResult(text=text, changed=False, engine="already_zh")

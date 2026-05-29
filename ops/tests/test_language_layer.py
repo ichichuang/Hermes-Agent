@@ -51,6 +51,23 @@ def test_b_layer_ordinary_english_reply_becomes_natural_chinese_without_prefix()
     assert "无需执行操作" in result.text
 
 
+def test_b_layer_live_m11_status_reply_renders_natural_chinese() -> None:
+    text = (
+        "Right now Hermes is running one thing:\n\n"
+        "- The gateway is running normally.\n"
+        "- No action is required."
+    )
+    result = render_b_layer(text)
+    assert result.changed is True
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert "Right now Hermes is running one thing:" not in result.text
+    assert "The gateway is running normally" not in result.text
+    assert "No action is required" not in result.text
+    assert "Hermes 当前只有一项正在运行" in result.text
+    assert "网关正在正常运行" in result.text
+    assert "无需执行操作" in result.text
+
+
 def test_b_layer_preserves_python_fence_without_execution_output() -> None:
     text = 'Use this script:\n```python\nprint("hello hermes")\n```\nDo not run it yet.'
     result = render_b_layer(text)
@@ -82,6 +99,39 @@ def test_b_layer_does_not_infer_execution_result_for_fenced_code(monkeypatch) ->
     assert calls == []
     assert "输出：hello hermes" not in result.text
     assert "Output: hello hermes" not in result.text
+
+
+def test_b_layer_live_m11_restores_user_fenced_code_when_output_collapses_it() -> None:
+    source_text = '不要改写代码块，也不要执行它：\n```python\nprint("hello hermes")\n```'
+    response_text = '这段 Python 代码是 `print("hello hermes")`，运行后会输出 hello hermes。'
+    result = render_b_layer(response_text, source_text=source_text)
+    assert result.changed is True
+    assert '```python\nprint("hello hermes")\n```' in result.text
+    assert '`print("hello hermes")`' not in result.text
+    assert "运行后会输出" not in result.text
+    assert "执行结果" not in result.text
+    assert result.text.count("hello hermes") == 1
+
+
+def test_b_layer_live_m11_keeps_path_url_yaml_slash_model_provider_regressions() -> None:
+    text = (
+        "Check /Users/cc/.hermes/config.yaml and https://example.com/docs.\n"
+        "```yaml\n"
+        "display:\n"
+        "  language: en\n"
+        "provider: DeepSeek\n"
+        "model: deepseek-chat\n"
+        "```\n"
+        "Do not execute /sethome."
+    )
+    result = render_b_layer(text)
+    assert result.text == text
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "display:" in result.text
+    assert "/sethome" in result.text
+    assert "DeepSeek" in result.text
+    assert "deepseek-chat" in result.text
 
 
 def test_b_layer_removes_inferred_execution_output_when_told_not_to_execute() -> None:
@@ -247,3 +297,30 @@ def test_plugin_runtime_config_enables_b_only(monkeypatch, tmp_path: Path) -> No
     assert rendered is not None
     assert "/sethome" in rendered
     assert module.pre_llm_call(user_message="帮我检查 ~/.hermes/config.yaml") is None
+
+
+def test_plugin_b_layer_uses_volatile_user_message_for_code_block_preservation(monkeypatch, tmp_path: Path) -> None:
+    if not PLUGIN_PATH.exists():
+        raise AssertionError(f"plugin missing: {PLUGIN_PATH}")
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        '{"b_enabled": true, "a_enabled": false, "local_model_enabled": false, "timeout_ms": 5000}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HERMES_LANG_LAYER_CONFIG", str(config_path))
+    monkeypatch.delenv("HERMES_LANG_LAYER_A_ENABLED", raising=False)
+
+    spec = importlib.util.spec_from_file_location("hermes_language_layer_plugin_m11_context_test", PLUGIN_PATH)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    source_text = '不要改写代码块，也不要执行它：\n```python\nprint("hello hermes")\n```'
+    response_text = '这段 Python 代码是 `print("hello hermes")`，运行后会输出 hello hermes。'
+    rendered = module.transform_llm_output(response_text=response_text, user_message=source_text)
+
+    assert module.pre_llm_call(user_message=source_text) is None
+    assert rendered is not None
+    assert '```python\nprint("hello hermes")\n```' in rendered
+    assert rendered.count("hello hermes") == 1
+    assert "运行后会输出" not in rendered

@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M10R |
-| Overall status | LANG_M10R_GO_RELOADED_REVALIDATED |
-| Final decision | GO_RELOADED_REVALIDATED because the M10 code-block preservation fix was loaded through gated `hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`; PID/runs changed from `67527`/`4` to `13263`/`5`; gateway/plugins/config/canary/full pytest/diff/secret scan passed; B-layer remains enabled and A-layer remains disabled |
+| Current task | LANG-M11-manual-telegram-finalization |
+| Overall status | LANG_M11_GO_WITH_POLISH |
+| Final decision | GO_WITH_POLISH because the real operator Telegram retest accepted the M11 B-layer fix: T1 PASS, T2 PASS, T3 PASS_WITH_CAUTION, T4 PASS_WITH_CAUTION; no protected-token corruption and no gateway issue observed; B-layer remains enabled, A-layer remains disabled, gateway remains loaded at PID `94212`; T3/T4 cautions are future observation-prompt and system/tool-status polish, not release blockers |
 
 ## Task status
 
@@ -68,6 +68,8 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M9 | NO-GO | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `67527`; `git status --short` checked; `git diff --check` PASS; B-layer enabled; A-layer disabled | Final decision `NO-GO_CODE_BLOCK_PROTECTION`; T1 PASS, T2 FAIL, T3 PASS, T4 PASS; path/URL/YAML keys pass, fenced code block shape fails; no rollback; recommend focused LANG-M10 code-block preservation patch |
 | LANG-M10 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10-code-block-preservation-fix | RED `3 failed, 13 passed`; GREEN `17 passed`; full pytest PASS `39 passed`; M10R reload/revalidation PASS; B-layer enabled; A-layer disabled | Final decision `GO_RELOADED_REVALIDATED`; source patch complete and loaded by M10R |
 | LANG-M10R | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation | pre-state PASS; gated reload PASS; post-state PASS; M10R canary PASS; full pytest PASS `39 passed`; `git diff --check` PASS; targeted secret scan PASS | Reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `67527` -> `13263`; runs `4` -> `5`; B-layer enabled; A-layer disabled |
+| LANG-M11 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix | RED `2 failed, 18 passed`; plugin RED `1 failed, 20 passed`; GREEN `21 passed`; full pytest PASS `43 passed`; gated reload PASS; M11 canary PASS; `git diff --check` PASS; targeted secret scan PASS | Final decision `GO_PENDING_MANUAL_TELEGRAM`; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `13263` -> `94212`; runs `5` -> `6`; B-layer enabled; A-layer disabled |
+| LANG-M11-FINAL | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix | read-only validation PASS; operator Telegram retest T1 PASS, T2 PASS, T3 PASS_WITH_CAUTION, T4 PASS_WITH_CAUTION; protected-token corruption none observed | Final decision `GO_WITH_POLISH`; stage only four requested repo files, run staged checks, commit and push `origin main` |
 
 ## Update template
 
@@ -804,4 +806,201 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - No Telegram message was sent; validation is gateway reload plus local plugin canary, not external chat observation.
   - `LANG-M10R` reused the existing `LANG-M6` exact allowlist because no separate M10R allowlist exists in `hermes-ops`.
+- Next task: stage only the four requested repo files, run staged checks, commit, and push `origin main`
+
+### Update 2026-05-29 14:56:03 CST — LANG-M11-live-b-layer-regression-fix
+
+- Status: DONE
+- Final decision: GO_PENDING_MANUAL_TELEGRAM
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-fix-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-fix-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_language_layer.py -q`
+  - result: PASS (`21 passed`) after RED `2 failed, 18 passed` and plugin RED `1 failed, 20 passed`
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`43 passed`)
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (exit `0`; PID `13263` -> `94212`; runs `5` -> `6`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `94212`)
+  - command: `hermes config check`
+  - result: PASS
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: M11 plugin canary
+  - result: PASS (T1 natural Chinese status; T2 fenced Python restored; no inferred execution output; A-layer returns `None`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan and gitleaks on changed source/test files
+  - result: PASS
+- Risks:
+  - No Telegram message was sent; manual Telegram retest remains required before commit or push.
+  - `LANG-M11` reused the existing `LANG-M6` exact allowlist because no separate M11 allowlist exists in `hermes-ops`.
+- Next task: operator manually retests T1-T4 in Telegram; commit/push only after manual Telegram PASS
+
+### Update 2026-05-29 15:20:41 CST — LANG-M11-manual-telegram-finalization
+
+- Status: BLOCKED
+- Final decision: BLOCKED_PENDING_OPERATOR_SUMMARY
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Evidence:
+  - Operator retest summary received as literal placeholder `PASTE_SUMMARY_HERE`.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Classification:
+  - T1 English status reply: BLOCKED
+  - T2 fenced code block: BLOCKED
+  - T3 path and URL: BLOCKED
+  - T4 YAML and slash token: BLOCKED
+- Validation:
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `94212`)
+  - command: `rg -n "b_enabled|a_enabled|local_model_enabled" /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `git status --short`
+  - result: PASS (four expected repo files modified)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (no findings)
+- Risks:
+  - Manual Telegram evidence is incomplete; M11 cannot be accepted for commit/push.
+- Next task: operator provides actual T1-T4 Telegram retest summary
+
+### Update 2026-05-29 15:22:51 CST — LANG-M11-manual-telegram-finalization
+
+- Status: BLOCKED
+- Final decision: BLOCKED_PENDING_OPERATOR_SUMMARY
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Evidence:
+  - Operator retest summary again received as literal placeholder `PASTE_SUMMARY_HERE`.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Classification:
+  - T1 English status reply: BLOCKED
+  - T2 fenced code block: BLOCKED
+  - T3 path and URL: BLOCKED
+  - T4 YAML and slash token: BLOCKED
+- Validation:
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `94212`)
+  - command: `rg -n "b_enabled|a_enabled|local_model_enabled" /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `git status --short`
+  - result: PASS (four expected repo files modified)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (no findings)
+- Risks:
+  - Manual Telegram evidence remains incomplete; M11 cannot be accepted for commit/push.
+- Next task: operator provides actual T1-T4 Telegram retest summary
+
+### Update 2026-05-29 15:24:49 CST — LANG-M11-manual-telegram-finalization
+
+- Status: BLOCKED
+- Final decision: BLOCKED_PENDING_OPERATOR_SUMMARY
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Evidence:
+  - Operator retest summary again received as literal placeholder `PASTE_SUMMARY_HERE`; same blocking condition now repeated for three consecutive finalization turns.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Classification:
+  - T1 English status reply: BLOCKED
+  - T2 fenced code block: BLOCKED
+  - T3 path and URL: BLOCKED
+  - T4 YAML and slash token: BLOCKED
+- Validation:
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `94212`)
+  - command: `rg -n "b_enabled|a_enabled|local_model_enabled" /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `git status --short`
+  - result: PASS (four expected repo files modified)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (no findings)
+- Risks:
+  - Manual Telegram evidence remains incomplete; M11 cannot be accepted for commit/push.
+- Next task: operator provides actual T1-T4 Telegram retest summary
+
+### Update 2026-05-29 16:02:55 CST — LANG-M11-manual-telegram-finalization
+
+- Status: DONE
+- Final decision: GO_WITH_POLISH
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Evidence:
+  - Operator retest summary received with real T1-T4 Telegram observations.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md
+- Classification:
+  - T1 English status reply: PASS; natural Chinese, no large English body, and no running background process/pending task reported.
+  - T2 fenced code block: PASS; fenced Python block with `print("hello hermes")` preserved unchanged and not rewritten or executed.
+  - T3 path and URL: PASS_WITH_CAUTION; `/Users/cc/.hermes/config.yaml` and `https://example.com/docs` preserved, but future observation prompts should avoid "check" when tool use is not desired.
+  - T4 YAML and slash token: PASS_WITH_CAUTION; YAML keys/values and `/sethome` preserved, `/sethome` not executed, but an English interrupt/tool status message remains future gateway/system-message polish.
+- Validation:
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `94212`)
+  - command: `rg -n "b_enabled|a_enabled|local_model_enabled" /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `git status --short`
+  - result: PASS (four expected repo files modified)
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks detect --no-git --source <changed-file> --redact --log-level error`
+  - result: PASS for all four changed repo files
+  - command: targeted high-confidence secret scan
+  - result: PASS; only documented redacted canary literal in tests matched, no real secret finding
+- Protected-token status: PASS; no corruption observed for fenced code, paths, URLs, YAML keys/values, provider/model names, or `/sethome`.
+- Runtime status: B-layer enabled; A-layer disabled; local model/Ollama disabled; gateway PID `94212`; no gateway issue observed.
+- Risks:
+  - T3 caution: operator prompt wording triggered read_file/browser_navigate tool behavior; future observation prompts should avoid "check" if tool use is not desired.
+  - T4 caution: English interrupt/tool status text should be tracked as future gateway/system-message polish.
 - Next task: stage only the four requested repo files, run staged checks, commit, and push `origin main`
