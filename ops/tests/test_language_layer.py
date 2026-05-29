@@ -68,6 +68,89 @@ def test_b_layer_live_m11_status_reply_renders_natural_chinese() -> None:
     assert "无需执行操作" in result.text
 
 
+def test_b_layer_m12_rewrites_gateway_reset_keys_and_tip_icon() -> None:
+    result = render_b_layer("gateway.reset.header_default\n\ngateway.reset.tip")
+    assert result.changed is True
+    assert "gateway.reset.header_default" not in result.text
+    assert "gateway.reset.tip" not in result.text
+    assert language_layer.ICON_PALETTE["gateway"] in result.text
+    assert language_layer.ICON_PALETTE["tip"] in result.text
+    assert "新会话" in result.text
+    assert "提示" in result.text
+
+
+def test_b_layer_m12_rewrites_shutdown_and_interrupt_notices() -> None:
+    shutdown = render_b_layer("⚠️ Gateway shutting down — Your current task will be interrupted.")
+    assert shutdown.changed is True
+    assert "Gateway shutting down" not in shutdown.text
+    assert "Your current task will be interrupted" not in shutdown.text
+    assert language_layer.ICON_PALETTE["interrupted"] in shutdown.text
+    assert "当前任务会被中断" in shutdown.text
+
+    interrupt = render_b_layer(
+        "⚡ Interrupting current task (running: browser_navigate). "
+        "I'll respond to your message shortly."
+    )
+    assert interrupt.changed is True
+    assert "⚡" not in interrupt.text
+    assert "Interrupting current task" not in interrupt.text
+    assert "browser_navigate" in interrupt.text
+    assert language_layer.ICON_PALETTE["interrupted"] in interrupt.text
+    assert "正在中断当前任务" in interrupt.text
+
+
+def test_b_layer_m12_normalizes_tool_trace_icons() -> None:
+    text = "\n".join(
+        [
+            '⚔ terminal: "pwd"',
+            "🔍 browser_navigate...",
+            "⚙️ background_process: running",
+            "read_file(/Users/cc/.hermes/config.yaml)",
+            "custom_tool...",
+        ]
+    )
+    result = render_b_layer(text)
+    assert result.changed is True
+    assert result.text.splitlines() == [
+        '🖥 terminal: "pwd"',
+        "🌐 browser_navigate...",
+        "⚙️ background_process: running",
+        "📄 read_file(/Users/cc/.hermes/config.yaml)",
+        "🧰 custom_tool...",
+    ]
+
+
+def test_b_layer_m12_rewrites_model_provider_context_header_without_touching_names() -> None:
+    text = "Model: deepseek-chat\nProvider: DeepSeek\nContext: 128000 tokens"
+    result = render_b_layer(text)
+    assert result.changed is True
+    assert "Model:" not in result.text
+    assert "Provider:" not in result.text
+    assert "Context:" not in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+    assert "128000 tokens" in result.text
+    assert "🧠 模型" in result.text
+    assert "🔌 服务商" in result.text
+    assert "📚 上下文" in result.text
+
+
+def test_b_layer_m12_replaces_legacy_tip_icon_and_preserves_tokens() -> None:
+    text = (
+        "💡 Tip: Check /Users/cc/.hermes/config.yaml and https://example.com/docs; "
+        "keep display.language, deepseek-chat, and DeepSeek unchanged."
+    )
+    result = render_b_layer(text)
+    assert result.changed is True
+    assert "💡 Tip:" not in result.text
+    assert "✨ 提示：" in result.text
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "display.language" in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+
+
 def test_b_layer_preserves_python_fence_without_execution_output() -> None:
     text = 'Use this script:\n```python\nprint("hello hermes")\n```\nDo not run it yet.'
     result = render_b_layer(text)

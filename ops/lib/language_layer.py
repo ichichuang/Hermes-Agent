@@ -15,6 +15,23 @@ from typing import Any
 LOCAL_OLLAMA_BASE_URL = "http://127.0.0.1:11434/v1"
 DEFAULT_TIMEOUT_MS = 5000
 
+ICON_PALETTE = {
+    "gateway": "🧭",
+    "model": "🧠",
+    "provider": "🔌",
+    "context": "📚",
+    "terminal": "🖥",
+    "process": "⚙️",
+    "browser": "🌐",
+    "file": "📄",
+    "tool": "🧰",
+    "running": "⏳",
+    "done": "✅",
+    "notice": "⚠️",
+    "interrupted": "⛔",
+    "tip": "✨",
+}
+
 PROTECTED_LITERAL_TOKENS = (
     "DeepSeek",
     "Ollama",
@@ -47,6 +64,13 @@ CODE_BLOCK_PRESERVE_INTENT_PATTERN = re.compile(
 )
 INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
     r"(?is)\n{1,3}(?:Output|Result|Execution output|输出|运行结果)\s*[:：][\s\S]*$"
+)
+MODEL_PROVIDER_CONTEXT_HEADER_PATTERN = re.compile(r"^(?P<label>Model|Provider|Context)\s*:\s*(?P<value>.+)$")
+TOOL_TRACE_LINE_PATTERN = re.compile(
+    r"^(?P<indent>\s*)"
+    r"(?:(?P<icon>⚔|🔍|🔎|🛠|🛠️|⚙|⚙️|💻|🌎|🌐|📂|📁|📄|🧰)\s*)?"
+    r"(?P<name>[A-Za-z][A-Za-z0-9_.-]*)"
+    r"(?P<tail>(?:\(|:|\.{3}).*)$"
 )
 
 
@@ -300,6 +324,158 @@ FIXED_ENGLISH_SENTENCE_REWRITES = {
 }
 
 
+def _rewrite_model_provider_context_header(text: str) -> str | None:
+    lines = text.splitlines()
+    meaningful = [line for line in lines if line.strip()]
+    if not meaningful:
+        return None
+    if not all(MODEL_PROVIDER_CONTEXT_HEADER_PATTERN.match(line.strip()) for line in meaningful):
+        return None
+
+    labels = {
+        "Model": f"{ICON_PALETTE['model']} 模型",
+        "Provider": f"{ICON_PALETTE['provider']} 服务商",
+        "Context": f"{ICON_PALETTE['context']} 上下文",
+    }
+    rendered_lines: list[str] = []
+    changed = False
+    for line in lines:
+        match = MODEL_PROVIDER_CONTEXT_HEADER_PATTERN.match(line.strip())
+        if not match:
+            rendered_lines.append(line)
+            continue
+        indent = line[: len(line) - len(line.lstrip())]
+        rendered_lines.append(f"{indent}{labels[match.group('label')]}：{match.group('value')}")
+        changed = True
+    return "\n".join(rendered_lines) if changed else None
+
+
+def _translate_status_detail(detail: str) -> str:
+    parts: list[str] = []
+    for item in [part.strip() for part in detail.split(",") if part.strip()]:
+        if item.startswith("running: "):
+            parts.append(f"正在运行：{item.removeprefix('running: ')}")
+        elif item.startswith("iteration "):
+            parts.append(f"迭代 {item.removeprefix('iteration ')}")
+        elif item.endswith(" min elapsed"):
+            parts.append(f"已运行 {item.removesuffix(' min elapsed')} 分钟")
+        else:
+            parts.append(item)
+    return "，".join(parts)
+
+
+def _rewrite_gateway_notice_line(line: str) -> str | None:
+    stripped = line.strip()
+    gateway_match = re.fullmatch(
+        r"(?:⚠️\s*)?Gateway (?P<action>shutting down|restarting)\s+—\s+"
+        r"(?P<hint>Your current task will be interrupted(?:\. Send any message after restart and "
+        r"I'll try to resume where you left off\.)?\.?)",
+        stripped,
+    )
+    if gateway_match:
+        action = gateway_match.group("action")
+        action_zh = "正在重启" if action == "restarting" else "正在关闭"
+        suffix = "当前任务会被中断。"
+        if "resume where you left off" in gateway_match.group("hint"):
+            suffix += "重启后发送任意消息，Hermes 会尝试接续。"
+        return f"{ICON_PALETTE['interrupted']} 网关{action_zh}。{suffix}"
+
+    interrupt_match = re.fullmatch(
+        r"(?:⚡\s*)?Interrupting current task(?: \((?P<detail>[^)]*)\))?\. "
+        r"I'll respond to your message shortly\.",
+        stripped,
+    )
+    if interrupt_match:
+        detail = interrupt_match.group("detail")
+        detail_zh = f"（{_translate_status_detail(detail)}）" if detail else ""
+        return f"{ICON_PALETTE['interrupted']} 正在中断当前任务{detail_zh}。我会尽快回复这条消息。"
+
+    return None
+
+
+def _rewrite_reset_key_or_tip_line(line: str) -> str | None:
+    stripped = line.strip()
+    reset_rewrites = {
+        "gateway.reset.header_default": f"{ICON_PALETTE['gateway']} 新会话已开始。",
+        "gateway.reset.header_new": f"{ICON_PALETTE['gateway']} 新会话已创建。",
+        "gateway.reset.tip": f"{ICON_PALETTE['tip']} 提示：新会话已就绪。",
+    }
+    if stripped in reset_rewrites:
+        return reset_rewrites[stripped]
+
+    tip_match = re.fullmatch(r"(?:💡|✦)?\s*Tip:\s*(?P<body>.+)", stripped)
+    if not tip_match:
+        return None
+    body = tip_match.group("body")
+    check_match = re.fullmatch(r"Check (?P<first>.+) and (?P<second>.+); keep (?P<keep>.+) unchanged\.", body)
+    if check_match:
+        return (
+            f"{ICON_PALETTE['tip']} 提示：检查 {check_match.group('first')} 和 "
+            f"{check_match.group('second')}；保持 {check_match.group('keep')} 不变。"
+        )
+    return f"{ICON_PALETTE['tip']} 提示：{body}"
+
+
+def _rewrite_gateway_reset_key_text(text: str) -> str | None:
+    lines = text.splitlines()
+    rendered: list[str] = []
+    changed = False
+    for line in lines:
+        if not line.strip():
+            rendered.append(line)
+            continue
+        rewritten = _rewrite_reset_key_or_tip_line(line)
+        if rewritten is None or not line.strip().startswith("gateway.reset."):
+            return None
+        indent = line[: len(line) - len(line.lstrip())]
+        rendered.append(indent + rewritten)
+        changed = True
+    return "\n".join(rendered) if changed else None
+
+
+def _tool_icon_for_name(name: str) -> str:
+    normalized = name.lower()
+    if normalized.startswith(("terminal", "shell", "run_command", "execute_command")):
+        return ICON_PALETTE["terminal"]
+    if normalized.startswith(("browser", "web_", "web.", "navigate", "click")):
+        return ICON_PALETTE["browser"]
+    if "process" in normalized or normalized.startswith(("background_", "job_", "cron_")):
+        return ICON_PALETTE["process"]
+    if normalized.startswith(("read_file", "write_file", "edit_file", "patch", "file_", "list_files")):
+        return ICON_PALETTE["file"]
+    return ICON_PALETTE["tool"]
+
+
+def _rewrite_tool_trace_line(line: str) -> str | None:
+    match = TOOL_TRACE_LINE_PATTERN.match(line)
+    if not match:
+        return None
+    name = match.group("name")
+    if name in {"Model", "Provider", "Context"}:
+        return None
+    icon = _tool_icon_for_name(name)
+    return f"{match.group('indent')}{icon} {name}{match.group('tail')}"
+
+
+def _rewrite_gateway_system_text(text: str) -> str | None:
+    lines = text.splitlines()
+    rendered: list[str] = []
+    changed = False
+    for line in lines:
+        rewritten = (
+            _rewrite_gateway_notice_line(line)
+            or _rewrite_reset_key_or_tip_line(line)
+            or _rewrite_tool_trace_line(line)
+        )
+        if rewritten is None:
+            rendered.append(line)
+            continue
+        indent = line[: len(line) - len(line.lstrip())]
+        rendered.append(indent + rewritten)
+        changed = True
+    return "\n".join(rendered) if changed else None
+
+
 def _deterministic_english_to_zh(text: str) -> str | None:
     stripped = text.strip()
     protected_token = r"__HERMES_LANG_PROTECTED_\d+__"
@@ -347,6 +523,13 @@ def render_b_layer(
     model: str | None = None,
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
 ) -> RenderResult:
+    metadata_header = _rewrite_model_provider_context_header(text)
+    if metadata_header is not None:
+        return RenderResult(text=metadata_header, changed=(metadata_header != text), engine="metadata_header")
+    reset_key_text = _rewrite_gateway_reset_key_text(text)
+    if reset_key_text is not None:
+        return RenderResult(text=reset_key_text, changed=(reset_key_text != text), engine="reset_key_map")
+
     bypass_reason = should_bypass_input(text)
     if bypass_reason:
         return RenderResult(text=text, changed=False, engine="bypass", bypass_reason=bypass_reason)
@@ -372,6 +555,11 @@ def render_b_layer(
     if candidate != protected.text:
         rendered = restore_text(candidate, protected.spans)
         return RenderResult(text=rendered, changed=(rendered != text), engine="fixed_map")
+
+    system_text = _rewrite_gateway_system_text(protected.text)
+    if system_text is not None:
+        rendered = restore_text(system_text, protected.spans)
+        return RenderResult(text=rendered, changed=(rendered != text), engine="system_map")
 
     if _is_pure_json(text) or _is_pure_yaml_like(text):
         return RenderResult(text=text, changed=False, engine="preserve_structured")

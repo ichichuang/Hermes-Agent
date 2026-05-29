@@ -195,3 +195,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 将 T3/T4 caution 降级为 blocking `NO-GO`；把 schema 外的 `PASS_WITH_CAUTION` 改写为 `PASS`；等待 Codex 主动 Telegram 补测；启用 A-layer 或调用 Ollama。
 - Consequence: M11 fix 可接受并发布；T3 的 "check" prompt tool-trigger 行为和 T4 的 English interrupt/tool status message 作为后续 gateway/system-message polish 跟踪，不阻塞本次 B-layer regression fix。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix/reports/M11-final-status.md`
+
+## ADR-0025 — LANG-M12 只在 B-layer 修复可拦截系统文本并记录 core-bypass blocker
+
+- Decision: 在 `LANG-M12-gateway-system-message-and-icon-polish` 中只修改 B-layer deterministic renderer 和测试：新增集中 `ICON_PALETTE`，覆盖 reset key、shutdown/interrupt notice、legacy tip、Model/Provider/Context header、tool trace icon normalization；不修改 plugin wrapper、Hermes core、site-packages、provider/model、credentials、config/env。
+- Reason: 本地源码检查显示 `transform_llm_output` 只覆盖最终 LLM 输出；live busy ack、shutdown notification、`/new` reset `EphemeralReply`、tool-progress bubbles 和部分 core metadata headers 由 bundled gateway/core 直接 `adapter.send` 或 `_send_with_retry`，不经过 B-layer。用户明确禁止 core edits。
+- Alternatives considered: 修改 Hermes core direct-send paths；注册更多 plugin hooks 去改写 tool result；启用 A-layer；调用 Ollama/local model；发送 Telegram live tests。
+- Consequence: B-layer 可拦截路径已通过 tests、gated reload 和 plugin canary；core direct-send live surfaces 标记为 `BLOCKED_CORE_REQUIRED`，最终决策为 `GO_PARTIAL_WITH_BLOCKERS`。Gateway 已通过 `hermes-ops` wrapper 从 PID `94212` runs `6` reload 到 PID `11332` runs `7`；B-layer enabled，A-layer disabled，local model disabled。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-final-status.md`

@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M11-manual-telegram-finalization |
-| Overall status | LANG_M11_GO_WITH_POLISH |
-| Final decision | GO_WITH_POLISH because the real operator Telegram retest accepted the M11 B-layer fix: T1 PASS, T2 PASS, T3 PASS_WITH_CAUTION, T4 PASS_WITH_CAUTION; no protected-token corruption and no gateway issue observed; B-layer remains enabled, A-layer remains disabled, gateway remains loaded at PID `94212`; T3/T4 cautions are future observation-prompt and system/tool-status polish, not release blockers |
+| Current task | LANG-M12-gateway-system-message-and-icon-polish |
+| Overall status | LANG_M12_GO_PARTIAL_WITH_BLOCKERS |
+| Final decision | GO_PARTIAL_WITH_BLOCKERS because M12 B-layer deterministic mappings, centralized icon palette, reload, and plugin canary passed, while live busy/shutdown/reset/tool-progress/core metadata surfaces still bypass `transform_llm_output` and require Hermes core changes; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, gateway reloaded from PID `94212` runs `6` to PID `11332` runs `7` |
 
 ## Task status
 
@@ -70,6 +70,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M10R | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M10R-gated-reload-revalidation | pre-state PASS; gated reload PASS; post-state PASS; M10R canary PASS; full pytest PASS `39 passed`; `git diff --check` PASS; targeted secret scan PASS | Reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `67527` -> `13263`; runs `4` -> `5`; B-layer enabled; A-layer disabled |
 | LANG-M11 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix | RED `2 failed, 18 passed`; plugin RED `1 failed, 20 passed`; GREEN `21 passed`; full pytest PASS `43 passed`; gated reload PASS; M11 canary PASS; `git diff --check` PASS; targeted secret scan PASS | Final decision `GO_PENDING_MANUAL_TELEGRAM`; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `13263` -> `94212`; runs `5` -> `6`; B-layer enabled; A-layer disabled |
 | LANG-M11-FINAL | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix | read-only validation PASS; operator Telegram retest T1 PASS, T2 PASS, T3 PASS_WITH_CAUTION, T4 PASS_WITH_CAUTION; protected-token corruption none observed | Final decision `GO_WITH_POLISH`; stage only four requested repo files, run staged checks, commit and push `origin main` |
+| LANG-M12 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish | RED `5 failed, 21 passed`; targeted GREEN `26 passed`; full pytest PASS `48 passed`; config/plugins/diff/secret scan PASS; gated reload PASS; M12 plugin canary PASS | Final decision `GO_PARTIAL_WITH_BLOCKERS`; B-layer mappings loaded; PID `94212` -> `11332`; runs `6` -> `7`; B-layer enabled; A-layer disabled; core-bypass surfaces marked `BLOCKED_CORE_REQUIRED` |
 
 ## Update template
 
@@ -1004,3 +1005,57 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - T3 caution: operator prompt wording triggered read_file/browser_navigate tool behavior; future observation prompts should avoid "check" if tool use is not desired.
   - T4 caution: English interrupt/tool status text should be tracked as future gateway/system-message polish.
 - Next task: stage only the four requested repo files, run staged checks, commit, and push `origin main`
+
+### Update 2026-05-29 17:21:22 CST — LANG-M12-gateway-system-message-and-icon-polish
+
+- Status: DONE
+- Final decision: GO_PARTIAL_WITH_BLOCKERS
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-final-status.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/pre-state/
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/validation/
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-final-status.md
+- Fixed patterns:
+  - `gateway.reset.header_default`, `gateway.reset.header_new`, `gateway.reset.tip` when routed through B-layer.
+  - `Gateway shutting down — Your current task will be interrupted.` when routed through B-layer.
+  - `Interrupting current task...` when routed through B-layer.
+  - legacy `Tip:` icon/text lines when routed through B-layer.
+  - `Model:` / `Provider:` / `Context:` headers when routed through B-layer.
+  - terminal/browser/process/file/tool trace leading icon normalization when routed through B-layer.
+- Blocked patterns:
+  - `BLOCKED_CORE_REQUIRED`: live busy interrupt ack direct adapter send.
+  - `BLOCKED_CORE_REQUIRED`: live gateway shutdown/restart notification direct adapter send.
+  - `BLOCKED_CORE_REQUIRED`: live `/new` reset `EphemeralReply` header/tip direct command reply.
+  - `BLOCKED_CORE_REQUIRED`: live tool progress bubbles direct progress callback send/edit.
+  - `BLOCKED_CORE_REQUIRED`: core slash-command/status metadata headers that bypass final LLM output.
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`48 passed`)
+  - command: `hermes config check`
+  - result: PASS (config version `23`)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (`files_scanned=34`, no findings)
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (wrapper decision `EXECUTED`, exit code `0`; PID `94212` -> `11332`, runs `6` -> `7`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `11332`)
+  - command: plugin canary for M12 mappings
+  - result: PASS
+- Runtime status: B-layer enabled; A-layer disabled; local model/Ollama disabled.
+- Protected-token status: PASS; slash commands, paths, URLs, fenced code blocks, JSON/YAML keys, config keys, model names, and provider names preserved by tests.
+- Risks:
+  - User-visible Telegram proof is still manual-only.
+  - Core direct-send system/tool-progress surfaces cannot be fixed without Hermes core changes.
+- Next task: manual Telegram observation for M12 fixed paths and core-bypass blockers.
