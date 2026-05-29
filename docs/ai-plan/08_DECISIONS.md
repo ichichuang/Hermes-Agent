@@ -115,3 +115,19 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 因 M7-02/M7-05 存在 polish 问题而给出 `NO-GO`；在本轮直接修改 B-layer wording；继续保持 `BLOCKED`。
 - Consequence: M7 观察阶段关闭，后续 polish 必须作为单独显式任务执行，并继续保护 commands、paths、URLs、code blocks、JSON/YAML keys、model/provider names。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/reports/M7-final-status.md`
+
+## ADR-0015 — LANG-M8 只做 B-layer 最小 polish，live 生效等待 gated reload
+
+- Decision: 对 B-layer deterministic fallback 做最小 polish：覆盖安全普通英文运维句的中文化，移除 `Hermes 返回了英文说明：` 混合前缀，并继续原样保护 fenced code blocks；M8 决策为 `GO_PENDING_RELOAD`。
+- Reason: M7 只暴露两个 polish 问题；当前任务明确禁止 gateway reload/restart，运行中的 gateway PID `11127` 已加载旧 Python 模块，不能声称 live Telegram 已生效。
+- Alternatives considered: 调用 Ollama 做泛化翻译；直接 reload gateway；扩大 B-layer 翻译器；修改 Hermes core。
+- Consequence: 本地源码和测试通过，但 live gateway 输出需后续单独 gated reload/revalidation；未知任意英文回复不再加混合 prefix，而是保持原文，避免不安全的伪翻译。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-final-status.md`
+
+## ADR-0016 — LANG-M8R 复用现有 LANG-M6 gateway restart 门禁
+
+- Decision: 在 `LANG-M8R-gated-reload-revalidation` 中通过现有 `hermes-ops` exact allowlist 执行 `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`，并将 M8R pre-state、reload、post-state、canary、validation 证据记录到独立 M8R phase 目录。
+- Reason: 当前 `hermes-ops` 仅在 `LANG-M6` allowlist 中允许 exact `hermes gateway restart`；用户要求执行最小 reload/restart 且禁止 raw hard-stop 操作、launchctl enable/bootstrap/bootout、A-layer、Ollama、Telegram 外发和 provider/model/credential 变更。
+- Alternatives considered: 直接运行 raw `hermes gateway restart`；新增 M8R allowlist 代码；使用 `launchctl kickstart`；跳过 reload 保持 `GO_PENDING_RELOAD`。
+- Consequence: M8 polish patch 已加载到 live gateway；gateway PID `11127` -> `67527`，runs `3` -> `4`；B-layer 保持启用，A-layer 保持禁用，local model 保持禁用；M8R canary、full pytest、diff check 和 secret scan 均 PASS。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/reports/M8R-reload-revalidation.md`

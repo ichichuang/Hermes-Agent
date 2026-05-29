@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M7 |
-| Overall status | LANG_M7_GO_WITH_POLISH_OPERATOR_OBSERVATIONS_COMPLETE |
-| Final decision | GO_WITH_POLISH because all M7 observations are complete, no protected-token corruption or gateway issue was observed, B-layer remains safe/enabled, A-layer remains disabled, and wording/code-block polish is recommended |
+| Current task | LANG-M8R |
+| Overall status | LANG_M8R_GO_RELOADED_REVALIDATED |
+| Final decision | GO_RELOADED_REVALIDATED because the M8 B-layer polish patch was loaded through a gated `hermes gateway restart`, gateway PID changed from `11127` to `67527`, runs changed from `3` to `4`, B-layer remains enabled, A-layer remains disabled, and post-reload validation passed |
 
 ## Task status
 
@@ -63,6 +63,8 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | D6.F | DONE | /Users/cc/HermesArchive/hermes-new-20260527_211109/phases/D6.F-post-autostart-validation/redaction-scan.json | D6 redaction scan PASS; findings `0` | Post-autostart validation |
 | LANG-M6 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M6-gated-b-layer-live-activation | B-layer canary PASS; gateway running; audit verify PASS; pytest PASS | Gated B-layer live activation; A-layer disabled |
 | LANG-M7 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M7-b-layer-observation-and-polish | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `11127`; `git status --short` checked | Final decision `GO_WITH_POLISH`; all M7 observations complete; M7-01 PASS, M7-02 NEEDS_POLISH, M7-03 PASS, M7-04 PASS, M7-05 NEEDS_POLISH, M7-06 PASS; no protected-token corruption; no runtime side effects |
+| LANG-M8 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish | Targeted RED `2 failed, 8 passed`; targeted GREEN `10 passed`; full pytest PASS `32 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted secret scan PASS; M8R reload/revalidation PASS | Final decision `GO_RELOADED_REVALIDATED`; minimal B-layer polish patch applied and loaded by M8R |
+| LANG-M8R | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation | pre-state PASS; gated reload PASS; post-state PASS; M8R canary PASS; full pytest PASS `32 passed`; `git diff --check` PASS; targeted secret scan PASS | Reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `11127` -> `67527`; runs `3` -> `4`; B-layer enabled; A-layer disabled |
 
 ## Update template
 
@@ -610,3 +612,84 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - English ordinary replies need wording polish; no polish applied in this task.
   - Code-block formatting fidelity needs polish; no B-layer code change was applied.
 - Next task: open a separate explicit polish implementation task if the operator wants B-layer wording changes
+
+### Update 2026-05-29 12:07:22 CST — LANG-M8-b-layer-polish
+
+- Status: DONE
+- Final decision: GO_PENDING_RELOAD
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-polish-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-polish-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-final-status.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-polish-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-polish-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-final-status.md
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_language_layer.py -q` before implementation
+  - result: RED (`2 failed, 8 passed`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_language_layer.py -q` after implementation
+  - result: PASS (`10 passed`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`32 passed`)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; secret values not recorded)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled, version `0.2.0`)
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `11127`; read-only)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (no unredacted key-value or token pattern matched)
+- Risks:
+  - Live gateway PID `11127` requires a future gated reload/restart to pick up the changed Python module.
+  - Unknown arbitrary English replies outside deterministic safe rewrite patterns are left unchanged instead of wrapped with mixed-language prefix.
+- Next task: open a separate explicit gated reload/revalidation task if the operator wants M8 live effect
+
+### Update 2026-05-29 12:27:09 CST — LANG-M8R-gated-reload-revalidation
+
+- Status: DONE
+- Final decision: GO_RELOADED_REVALIDATED
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/reports/M8R-reload-revalidation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish/reports/M8-validation-summary.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/pre-state/runtime-state.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/reload/hermes-ops-run.stdout.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/post-state/runtime-state.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/post-state/m8r-plugin-canary.json
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/validation/validation-summary.json
+- Validation:
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (exit code `0`; PID `11127` -> `67527`; runs `3` -> `4`)
+  - command: `hermes gateway status`
+  - result: PASS
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS
+  - command: M8R plugin canary
+  - result: PASS (B-layer polish active; A-layer disabled; code blocks and protected tokens preserved)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`32 passed`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS
+- Risks:
+  - `LANG-M8R` reused the existing `LANG-M6` exact allowlist for `hermes gateway restart` because no separate M8R allowlist exists in `hermes-ops`; the M8R phase records linked evidence.
+  - Unknown arbitrary English replies outside deterministic safe rewrite patterns remain unchanged by design.
+- Next task: stage the four requested repo files, run staged checks, commit, and push `origin main`

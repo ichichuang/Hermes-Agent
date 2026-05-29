@@ -41,6 +41,41 @@ def test_b_layer_preserves_fenced_json_byte_for_byte() -> None:
     assert result.changed is False
 
 
+def test_b_layer_ordinary_english_reply_becomes_natural_chinese_without_prefix() -> None:
+    result = render_b_layer("The gateway is running normally. No action is required.")
+    assert result.changed is True
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert "gateway is running" not in result.text
+    assert "网关正在正常运行" in result.text
+    assert "无需执行操作" in result.text
+
+
+def test_b_layer_preserves_python_fence_without_execution_output() -> None:
+    text = 'Use this script:\n```python\nprint("hello hermes")\n```\nDo not run it yet.'
+    result = render_b_layer(text)
+    assert result.text == text
+    assert result.changed is False
+    assert "Output:" not in result.text
+    assert "输出" not in result.text
+
+
+def test_b_layer_preserves_paths_urls_commands_keys_and_model_names() -> None:
+    text = (
+        "Check /Users/cc/.hermes/config.yaml, visit https://example.com/docs, "
+        "run /sethome, and keep display.language and deepseek-chat on DeepSeek."
+    )
+    result = render_b_layer(text)
+    assert result.changed is True
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "/sethome" in result.text
+    assert "display.language" in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert "Check " not in result.text
+
+
 def test_a_layer_bypasses_slash_and_secret_like_inputs() -> None:
     slash = normalize_to_task_card("/new")
     secret = normalize_to_task_card("TELEGRAM_BOT_TOKEN=REDACTED_CANARY_SHOULD_NOT_LOG")

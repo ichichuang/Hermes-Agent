@@ -217,6 +217,33 @@ FIXED_B_REWRITES = (
     ("No shell hooks configured", "当前未配置 shell hooks"),
 )
 
+FIXED_ENGLISH_SENTENCE_REWRITES = {
+    "The gateway is running normally.": "网关正在正常运行。",
+    "No action is required.": "无需执行操作。",
+    "No action is needed.": "无需执行操作。",
+    "Configuration saved.": "配置已保存。",
+    "Permission denied.": "权限不足。",
+    "Command timed out.": "命令超时。",
+}
+
+
+def _deterministic_english_to_zh(text: str) -> str | None:
+    stripped = text.strip()
+    protected_token = r"__HERMES_LANG_PROTECTED_\d+__"
+    technical_check = re.fullmatch(
+        rf"Check ({protected_token}),? visit ({protected_token}),? run ({protected_token}),? "
+        rf"and keep ({protected_token}) and ({protected_token}) on ({protected_token})\.",
+        stripped,
+    )
+    if technical_check:
+        path, url, command, key, model_name, provider = technical_check.groups()
+        return f"请检查 {path}，访问 {url}，运行 {command}，并保持 {key} 和 {model_name} 使用 {provider}。"
+
+    sentences = [sentence for sentence in re.split(r"(?<=[.!?])\s+", stripped) if sentence]
+    if sentences and all(sentence in FIXED_ENGLISH_SENTENCE_REWRITES for sentence in sentences):
+        return "".join(FIXED_ENGLISH_SENTENCE_REWRITES[sentence] for sentence in sentences)
+    return None
+
 
 def render_b_layer(text: str, *, use_ollama: bool = False, model: str | None = None, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> RenderResult:
     bypass_reason = should_bypass_input(text)
@@ -241,8 +268,11 @@ def render_b_layer(text: str, *, use_ollama: bool = False, model: str | None = N
             rendered = _ollama_render_to_zh(protected.text, protected.spans, model=model, timeout_ms=timeout_ms)
             if rendered:
                 return RenderResult(text=rendered, changed=(rendered != text), engine="ollama")
-        fallback = restore_text(f"Hermes 返回了英文说明：{protected.text}", protected.spans)
-        return RenderResult(text=fallback, changed=(fallback != text), engine="deterministic", fallback=True)
+        deterministic = _deterministic_english_to_zh(protected.text)
+        if deterministic:
+            rendered = restore_text(deterministic, protected.spans)
+            return RenderResult(text=rendered, changed=(rendered != text), engine="deterministic", fallback=True)
+        return RenderResult(text=text, changed=False, engine="unchanged_english", fallback=True)
 
     return RenderResult(text=text, changed=False, engine="unchanged")
 
