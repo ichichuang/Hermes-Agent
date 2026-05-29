@@ -131,3 +131,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 直接运行 raw `hermes gateway restart`；新增 M8R allowlist 代码；使用 `launchctl kickstart`；跳过 reload 保持 `GO_PENDING_RELOAD`。
 - Consequence: M8 polish patch 已加载到 live gateway；gateway PID `11127` -> `67527`，runs `3` -> `4`；B-layer 保持启用，A-layer 保持禁用，local model 保持禁用；M8R canary、full pytest、diff check 和 secret scan 均 PASS。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation/reports/M8R-reload-revalidation.md`
+
+## ADR-0017 — LANG-M9 真实观察后给出 NO-GO_CODE_BLOCK_PROTECTION
+
+- Decision: 将 `LANG-M9-post-polish-live-observation` 从缺观察 `BLOCKED` 更新为 `NO-GO_CODE_BLOCK_PROTECTION`，在 schema-limited ledger 中记录为 `NO-GO`。
+- Reason: 操作员提供了真实 Telegram 截图观察：T1 English ordinary reply PASS，T3 path/URL PASS，T4 YAML keys PASS；但 T2 fenced code block FAIL，虽然 `print("hello hermes")` 未被语义改写，代码块围栏形状没有保留，且回复在用户明确要求 "do not execute it" 时推断了执行输出。
+- Alternatives considered: 因 T1/T3/T4 通过而给出 `GO_WITH_POLISH`；自动 rollback M8 polish；由 Codex 发送 Telegram 补测；启用 A-layer 或调用 Ollama 修复。
+- Consequence: 不自动 rollback，因为 gateway 稳定且 T1/T3/T4 的 B-layer 修复有效；B-layer 保持启用，A-layer 保持禁用，gateway 保持 PID `67527`、runs `4`；后续应开 `LANG-M10` 聚焦修复 fenced code block preservation 和 forbidden execution inference。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-final-status.md`

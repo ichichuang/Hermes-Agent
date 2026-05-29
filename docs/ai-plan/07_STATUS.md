@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M8R |
-| Overall status | LANG_M8R_GO_RELOADED_REVALIDATED |
-| Final decision | GO_RELOADED_REVALIDATED because the M8 B-layer polish patch was loaded through a gated `hermes gateway restart`, gateway PID changed from `11127` to `67527`, runs changed from `3` to `4`, B-layer remains enabled, A-layer remains disabled, and post-reload validation passed |
+| Current task | LANG-M9 |
+| Overall status | LANG_M9_NO_GO_CODE_BLOCK_PROTECTION |
+| Final decision | NO-GO_CODE_BLOCK_PROTECTION because real operator Telegram screenshot observations classify T1 PASS, T2 FAIL, T3 PASS, T4 PASS; fenced code block shape was not preserved and execution output was inferred despite "do not execute it"; B-layer remains enabled, A-layer remains disabled, gateway remains loaded/running with PID `67527` and runs `4`; no automatic rollback because gateway is stable and T1/T3/T4 remain useful |
 
 ## Task status
 
@@ -65,6 +65,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M7 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M7-b-layer-observation-and-polish | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `11127`; `git status --short` checked | Final decision `GO_WITH_POLISH`; all M7 observations complete; M7-01 PASS, M7-02 NEEDS_POLISH, M7-03 PASS, M7-04 PASS, M7-05 NEEDS_POLISH, M7-06 PASS; no protected-token corruption; no runtime side effects |
 | LANG-M8 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8-b-layer-polish | Targeted RED `2 failed, 8 passed`; targeted GREEN `10 passed`; full pytest PASS `32 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted secret scan PASS; M8R reload/revalidation PASS | Final decision `GO_RELOADED_REVALIDATED`; minimal B-layer polish patch applied and loaded by M8R |
 | LANG-M8R | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M8R-gated-reload-revalidation | pre-state PASS; gated reload PASS; post-state PASS; M8R canary PASS; full pytest PASS `32 passed`; `git diff --check` PASS; targeted secret scan PASS | Reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `11127` -> `67527`; runs `3` -> `4`; B-layer enabled; A-layer disabled |
+| LANG-M9 | NO-GO | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation | `hermes plugins list` PASS; `hermes config check` PASS; `hermes gateway status` before/after PASS with PID `67527`; `git status --short` checked; `git diff --check` PASS; B-layer enabled; A-layer disabled | Final decision `NO-GO_CODE_BLOCK_PROTECTION`; T1 PASS, T2 FAIL, T3 PASS, T4 PASS; path/URL/YAML keys pass, fenced code block shape fails; no rollback; recommend focused LANG-M10 code-block preservation patch |
 
 ## Update template
 
@@ -693,3 +694,33 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - `LANG-M8R` reused the existing `LANG-M6` exact allowlist for `hermes gateway restart` because no separate M8R allowlist exists in `hermes-ops`; the M8R phase records linked evidence.
   - Unknown arbitrary English replies outside deterministic safe rewrite patterns remain unchanged by design.
 - Next task: stage the four requested repo files, run staged checks, commit, and push `origin main`
+
+### Update 2026-05-29 12:56:51 CST — LANG-M9-post-polish-live-observation
+
+- Status: NO-GO
+- Final decision: NO-GO_CODE_BLOCK_PROTECTION
+- Repo files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-final-status.md
+- Validation:
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled, version `0.2.0`)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; no secret values recorded)
+  - command: `hermes gateway status` before report update
+  - result: PASS (service loaded, PID `67527`)
+  - command: `hermes gateway status` after report update
+  - result: PASS (service loaded, PID `67527`)
+  - command: `git status --short`
+  - result: PASS command ran; tracked docs modified as expected
+  - command: `git diff --check`
+  - result: PASS
+- Risks:
+  - T2 failed fenced code block shape preservation and inferred execution output despite "do not execute it".
+  - M9 is not accepted until a focused code-block preservation patch is implemented and re-observed.
+  - No automatic rollback was performed because gateway is stable and T1/T3/T4 passed.
+- Next task: LANG-M10 focused code-block preservation patch
