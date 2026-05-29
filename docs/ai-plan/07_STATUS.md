@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M12-gateway-system-message-and-icon-polish |
-| Overall status | LANG_M12_GO_PARTIAL_WITH_BLOCKERS |
-| Final decision | GO_PARTIAL_WITH_BLOCKERS because M12 B-layer deterministic mappings, centralized icon palette, reload, and plugin canary passed, while live busy/shutdown/reset/tool-progress/core metadata surfaces still bypass `transform_llm_output` and require Hermes core changes; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, gateway reloaded from PID `94212` runs `6` to PID `11332` runs `7` |
+| Current task | LANG-M14RB-rollback-failed-core-boundary-patch |
+| Overall status | LANG_M14RB_ROLLBACK_COMPLETE |
+| Final decision | GO_ROLLBACK_COMPLETE because the failed M14 local core/site-packages boundary patch was restored from pre-M14 raw backups, hashes match backups, gateway was reloaded once through `hermes-ops run --phase LANG-M14 --risk service-change -- hermes gateway restart`, repo-side failed M14 code/test/patch artifacts were removed, full ops pytest passed, and only rollback/status docs remain modified; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, gateway moved from PID `72219` runs `8` to PID `45833` runs `9` |
 
 ## Task status
 
@@ -71,6 +71,8 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M11 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix | RED `2 failed, 18 passed`; plugin RED `1 failed, 20 passed`; GREEN `21 passed`; full pytest PASS `43 passed`; gated reload PASS; M11 canary PASS; `git diff --check` PASS; targeted secret scan PASS | Final decision `GO_PENDING_MANUAL_TELEGRAM`; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `13263` -> `94212`; runs `5` -> `6`; B-layer enabled; A-layer disabled |
 | LANG-M11-FINAL | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M11-live-b-layer-regression-fix | read-only validation PASS; operator Telegram retest T1 PASS, T2 PASS, T3 PASS_WITH_CAUTION, T4 PASS_WITH_CAUTION; protected-token corruption none observed | Final decision `GO_WITH_POLISH`; stage only four requested repo files, run staged checks, commit and push `origin main` |
 | LANG-M12 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish | RED `5 failed, 21 passed`; targeted GREEN `26 passed`; full pytest PASS `48 passed`; config/plugins/diff/secret scan PASS; gated reload PASS; M12 plugin canary PASS | Final decision `GO_PARTIAL_WITH_BLOCKERS`; B-layer mappings loaded; PID `94212` -> `11332`; runs `6` -> `7`; B-layer enabled; A-layer disabled; core-bypass surfaces marked `BLOCKED_CORE_REQUIRED` |
+| LANG-M14 | NO-GO | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch | local RED/GREEN PASS; full pytest PASS `55 passed`; read-only finalization checks PASS; operator Telegram T1 BLOCKED, T2 FAIL, T3 PASS, T4 NEEDS_POLISH, T5 BLOCKED_NOT_TESTED | Final decision `NO-GO_WITH_ROLLBACK`; `/new` still leaks `gateway.reset.tip`; tool-progress bubble still shows old `terminal` styling; protected tokens preserved; rollback required but not executed due no restart/reload instruction |
+| LANG-M14RB | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch | pre/post hash verification PASS; gated restart PASS; full pytest PASS `48 passed`; `git diff --check` PASS; targeted secret scan PASS; repo cleanup PASS | Final decision `GO_ROLLBACK_COMPLETE`; restored `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` and `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/platforms/base.py`; PID `72219` -> `45833`; runs `8` -> `9`; B-layer enabled; A-layer disabled |
 
 ## Update template
 
@@ -298,6 +300,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Evidence:
   - /Users/cc/HermesArchive/hermes-new-20260527_211109/phases/D6.B-autostart-capability/autostart-assessment.json
   - /Users/cc/HermesArchive/hermes-new-20260527_211109/reports/D6-autostart-final.md
+
   - /Users/cc/HermesArchive/hermes-new-20260527_211109/reports/D6-autostart-validation-matrix.md
   - /Users/cc/HermesArchive/hermes-new-20260527_211109/reports/D6-reboot-autostart-validation-instructions.md
   - /Users/cc/HermesArchive/hermes-new-20260527_211109/reports/D6-next-actions.md
@@ -1059,3 +1062,111 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - User-visible Telegram proof is still manual-only.
   - Core direct-send system/tool-progress surfaces cannot be fixed without Hermes core changes.
 - Next task: manual Telegram observation for M12 fixed paths and core-bypass blockers.
+
+### Update 2026-05-29 18:51:06 CST — LANG-M14-manual-telegram-finalization
+
+- Status: NO-GO
+- Final decision: NO-GO_WITH_ROLLBACK
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/ops/patches/M14-core-boundary-transform.patch
+  - /Users/cc/.hermes/ops/patches/M14-apply-core-patch.md
+  - /Users/cc/.hermes/ops/patches/M14-rollback-core-patch.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/reports/M14-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/reports/M14-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/reports/M14-manual-telegram-finalization.md
+- Evidence:
+  - Real operator Telegram summary and screenshot supplied in-thread.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/manual-finalization/
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/reports/M14-manual-telegram-finalization.md
+- Classification:
+  - T1 busy interrupt ack: BLOCKED; no distinct busy/interrupt ack observed, likely because prior task completed before the follow-up message was handled; no English `Interrupting current task` observed.
+  - T2 `/new` reset UX: FAIL; reset header and model/provider/context labels are mostly Chinese and `deepseek-chat` is preserved, but raw `gateway.reset.tip` leaks.
+  - T3 `/status` labels: PASS; Chinese labels rendered and no `gateway.status.*` raw keys observed.
+  - T4 tool progress bubble: NEEDS_POLISH; command and final Chinese answer preserved, but bubble still shows old `terminal` styling instead of the expected M14 palette.
+  - T5 restart/shutdown notice: BLOCKED_NOT_TESTED.
+- Protected-token status: PASS; `/Users/...`, `/new`, `/status`, `deepseek-chat`, and the `date` command were preserved.
+- Slash-command status: PASS; no slash command was unintentionally executed beyond operator-requested `/new` and `/status`.
+- Validation:
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `72219`)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; key names only, no values recorded)
+  - command: `git status --short`
+  - result: PASS (expected repo-side M14 files modified/untracked)
+  - command: `git diff --check`
+  - result: PASS
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`55 passed`)
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops security scan-evidence --phase LANG-M14 --scope-prefix LANG-M14`
+  - result: PASS (`finding_count: 0`)
+  - command: targeted high-confidence secret scan over changed repo files
+  - result: PASS (no findings)
+- Not executed:
+  - No Telegram messages sent by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No gateway restart/reload.
+  - No provider/model/credential modification.
+  - No rollback applied; rollback requires a later operator-approved gated restart/reload.
+- Risks:
+  - Live gateway remains on the previously loaded local site-packages M14 patch until a gated rollback/reload is authorized.
+  - `/new` raw key leak is a tested failure and blocks accepting the M14 core patch.
+- Next task: operator-approved rollback or a follow-up M15 fix for reset tip and tool-progress styling.
+
+### Update 2026-05-29 19:09:34 CST — LANG-M14RB-rollback-failed-core-boundary-patch
+
+- Status: DONE
+- Final decision: GO_ROLLBACK_COMPLETE
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+- Core files restored:
+  - /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py
+  - /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/platforms/base.py
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch/pre-state/
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch/rollback/
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch/validation/
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch/reports/M14RB-validation-summary.md
+- Rollback:
+  - `gateway/run.py` hash restored from `eb4fd7a19592413c37e0e49f8e05041584a9911d063f5287a9d9c9b606afb99d` to backup hash `67277329e09842ac3463a39f5b79ce4795c96a0b638d4f6bbc71298441df855e`.
+  - `gateway/platforms/base.py` hash restored from `501e9cb657c12e0a756d4487c3f7c1f8c581011e1aae7f0b2e3e3c8f7973f589` to backup hash `726d742ed6166e020be3ba316b3d70b0f8df70fac83a50edc86bc2df8ff238f1`.
+  - Restored files compare byte-for-byte equal to the pre-M14 backups and retain `0644` core-file permissions.
+- Runtime:
+  - Before restart: gateway PID `72219`, launchd runs `8`.
+  - Restart command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M14 --risk service-change -- hermes gateway restart`.
+  - After restart: gateway PID `45833`, launchd runs `9`.
+  - B-layer enabled; A-layer disabled; local model/Ollama disabled.
+- Repo cleanup:
+  - Reverted failed M14 tracked edits in `ops/lib/common.py`, `ops/lib/language_layer.py`, `ops/lib/phase_gate.py`, `ops/tests/test_language_layer.py`, and `ops/tests/test_phase_gate.py`.
+  - Removed untracked M14-only artifacts under `ops/tests/test_gateway_boundary_transform.py` and `ops/patches/`.
+  - `git status --short` after cleanup shows only `docs/ai-plan/07_STATUS.md` and `docs/ai-plan/08_DECISIONS.md` modified.
+- Validation:
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `45833`)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; key names only, no values recorded)
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`48 passed`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan over changed docs
+  - result: PASS (`finding_count=0`)
+- Not executed:
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No Telegram messages sent by Codex.
+  - No slash commands executed.
+  - No provider/model/credential/config/env/auth/session/log/state/cache/PID/lock changes.
+  - No `launchctl enable`, `launchctl bootstrap`, or `launchctl bootout`.
+- Risks:
+  - M14 core patch is rejected; future attempts must start from a new explicit phase and not reuse the failed repo-side patch artifacts.
+- Next task: stage only the two docs, run staged checks, commit, and push `origin main`.

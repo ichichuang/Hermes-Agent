@@ -203,3 +203,27 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 修改 Hermes core direct-send paths；注册更多 plugin hooks 去改写 tool result；启用 A-layer；调用 Ollama/local model；发送 Telegram live tests。
 - Consequence: B-layer 可拦截路径已通过 tests、gated reload 和 plugin canary；core direct-send live surfaces 标记为 `BLOCKED_CORE_REQUIRED`，最终决策为 `GO_PARTIAL_WITH_BLOCKERS`。Gateway 已通过 `hermes-ops` wrapper 从 PID `94212` runs `6` reload 到 PID `11332` runs `7`；B-layer enabled，A-layer disabled，local model disabled。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M12-gateway-system-message-and-icon-polish/reports/M12-final-status.md`
+
+## ADR-0026 — LANG-M14 用最小本地 core 边界 helper 承接 direct-send 文本
+
+- Decision: 在 `LANG-M14-minimal-core-boundary-transform-patch` 中进行明确授权的本地 site-packages 补丁：`gateway.platforms.base._gateway_boundary_transform_text` 只在 B-layer enabled 时调用 `/Users/cc/.hermes/ops/lib/language_layer.py` 的 `render_b_layer(..., use_ollama=False)`，并把 busy/drain ack、shutdown notice、slash/ephemeral command replies、tool-progress bubble/hint、status callback 接到该 helper；同时给 `LANG-M14` 增加 exact `hermes gateway restart` gate。
+- Reason: M13 已证明剩余 live 英文面是 gateway/core direct-send 边界，非最终 LLM 输出，插件 hook 无安全 outgoing transform；本轮用户显式批准最小本地 core/site-packages 边界补丁。
+- Alternatives considered: 继续仅做 config suppression；adapter monkey patch；启用 A-layer；调用 Ollama/local model；直接运行 raw `hermes gateway restart`；复用旧 `LANG-M6` gate。
+- Consequence: 本地 core patch 已通过 RED/GREEN、full pytest、config/plugins/gateway checks、diff check、secret scan、M14 gated reload 和 post-reload synthetic canary；gateway PID `11332` runs `7` -> PID `72219` runs `8`。B-layer enabled，A-layer disabled，local model/Ollama disabled。该补丁是本机 site-packages 状态，Hermes 升级可能覆盖，需保留 M14 backup/rollback。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/reports/M14-final-status.md`
+
+## ADR-0027 — LANG-M14 真实 Telegram 观察后拒绝 core patch
+
+- Decision: 将 `LANG-M14-minimal-core-boundary-transform-patch` 从 `GO_PENDING_MANUAL_TELEGRAM` 更新为 `NO-GO_WITH_ROLLBACK`；不 commit、不 push、不执行 rollback/restart。
+- Reason: 操作员提供真实 Telegram 观察，T2 `/new` reset UX 仍泄漏 raw `gateway.reset.tip`，T4 tool-progress bubble 仍显示旧 `terminal` styling；这属于已测试失败，不满足 M14 接受条件。
+- Alternatives considered: 因 T3 `/status` PASS 和 protected-token 未腐坏而给 `GO_PARTIAL_WITH_BLOCKERS`；由 Codex 主动补发 Telegram；在禁止 restart/reload 的当前任务内直接 rollback site-packages。
+- Consequence: repo-side补丁、测试和复现/回滚文档保留为未提交差异；live gateway 仍运行已加载的本地 site-packages patch，等待后续 operator-approved gated rollback/reload 或 M15 修复。B-layer enabled，A-layer disabled，local model/Ollama disabled，provider/model/credentials unchanged。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch/reports/M14-manual-telegram-finalization.md`
+
+## ADR-0028 — LANG-M14RB 回滚失败 core 边界补丁并只提交状态文档
+
+- Decision: 在 `LANG-M14RB-rollback-failed-core-boundary-patch` 中从 pre-M14 raw backups 恢复本地 site-packages 的 `gateway/run.py` 和 `gateway/platforms/base.py`，通过 `hermes-ops run --phase LANG-M14 --risk service-change -- hermes gateway restart` 执行一次受控 reload，清理 M14 repo-side code/test/patch artifacts，并只提交 `docs/ai-plan/07_STATUS.md` 与 `docs/ai-plan/08_DECISIONS.md`。
+- Reason: M14 已因 `/new` raw key leak 和 tool-progress 旧样式被真实 Telegram 观察判定 `NO-GO_WITH_ROLLBACK`；当前任务显式要求恢复 live gateway 到 pre-M14 stable state，同时禁止 A-layer、Ollama、Telegram 外发、slash commands、provider/model/credential/config/env 修改，以及提交失败补丁产物。
+- Alternatives considered: 继续修补 M14 core patch；保留 repo-side patch artifacts 供后续复用；直接运行 raw `hermes gateway restart`；禁用 B-layer 或启用 A-layer；修改 provider/model/credentials。
+- Consequence: live gateway 已加载 pre-M14 core files，PID `72219` runs `8` -> PID `45833` runs `9`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled；ops tests 回到当前 repo baseline `48 passed`；M14 core patch 不进入 git history，后续 core-boundary 工作必须另开新 phase。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch/reports/M14RB-validation-summary.md`
