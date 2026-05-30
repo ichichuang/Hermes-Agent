@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M9-post-polish-live-observation |
-| Overall status | LANG_M9_GO_WITH_POLISH_OPERATOR_OBSERVED |
-| Final decision | GO_WITH_POLISH for M9 post-polish live observation because both supplied operator observations are complete enough to classify; M9-01 and M9-02 both need further polish, but no gateway issue or protected-token corruption was observed; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled; gateway PID remained `85253` across read-only validation |
+| Current task | LANG-M18-tool-terminal-chinese-and-codeblock-polish |
+| Overall status | LANG_M18_GO_RELOADED_REVALIDATED |
+| Final decision | GO_RELOADED_REVALIDATED for M18 because tool/terminal-backed English final replies now render through deterministic Chinese mappings without mixed English bodies or `Hermes 返回了英文说明：`, fenced Python blocks remain fenced/exact, inferred execution-result text is removed when the user says not to execute, protected slash/path/URL/config/model/provider tokens remain unchanged, B-layer is enabled, A-layer is disabled, local model/Ollama is disabled, and the patch was loaded by gated reload; gateway PID `85253` -> `57682` |
 
 ## Task status
 
@@ -76,6 +76,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M16 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix | RED `3 failed, 1 passed`; GREEN `4 passed`; full pytest PASS `52 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset canary PASS; operator `/new` scoped observation PASS | Final decision `GO_SCOPED_PASS`; scoped target `gateway.reset.tip` PASS; full `/new` UX `GO_PARTIAL_WITH_BLOCKERS`; patched only `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` reset-tip fallback; PID `81093`; B-layer enabled; A-layer disabled; M17 blockers: `gateway.reset.header_default` raw key, metadata label/icon polish, Chinese tip body |
 | LANG-M17 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish | targeted RED `12 failed, 25 passed`; targeted GREEN `37 passed`; full pytest PASS `59 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset-format canary PASS; operator `/new` observation PASS; read-only finalization checks PASS | Final decision `GO`; patched `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py:_handle_reset_command` and `/Users/cc/.hermes/ops/lib/language_layer.py` icon palette; PID/runs `47246/12` -> `18954/14`; current PID `18954`; B-layer enabled; A-layer disabled |
 | LANG-M9-RERUN | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted `gitleaks` scan; gateway PID `85253` before/after; B-layer enabled; A-layer disabled | Final decision `GO_WITH_POLISH`; M9-01 NEEDS_POLISH, M9-02 NEEDS_POLISH; gateway issues none; protected-token corruption none observed; recommendations captured for Chinese rendering and fenced-code exact preservation |
+| LANG-M18 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish | RED `2 failed, 28 passed`; targeted GREEN `30 passed`; full pytest PASS `61 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted `gitleaks` PASS; gated reload PASS; post-reload M18 plugin canaries PASS | Final decision `GO_RELOADED_REVALIDATED`; deterministic terminal/tool final-reply Chinese rendering added; unlabeled inferred execution-result tail removed for no-execute fenced-code replies; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `85253` -> `57682`; B-layer enabled; A-layer disabled; local model/Ollama disabled |
 
 ## Update template
 
@@ -1527,3 +1528,57 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - M9 is accepted only as `GO_WITH_POLISH`; tool-backed English final replies and exact fenced-code behavior still need a focused polish phase.
 - Next task: implement a scoped polish phase for terminal/tool-result Chinese rendering and exact fenced-code/no-execution-inference behavior.
+
+### Update 2026-05-30 12:45:02 CST — LANG-M18-tool-terminal-chinese-and-codeblock-polish
+
+- Status: DONE
+- Final decision: GO_RELOADED_REVALIDATED
+- Scope:
+  - Fixed remaining M9 B-layer polish only.
+  - No A-layer enablement, no Ollama/local model call, no Telegram send, no slash command, no Hermes core/site-packages edit, no provider/model/credential/config/env change.
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish/*
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish/pre-state/*
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish/validation/*
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish/canaries/*
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish/reports/M18-final-status.md
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_language_layer.py -q`
+  - result: RED PASS (`2 failed, 28 passed`) before implementation; targeted GREEN PASS (`30 passed`) after implementation
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`61 passed`)
+  - command: `hermes config check`
+  - result: PASS; key names/status only, no values recorded
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes gateway status`
+  - result: PASS before reload PID `85253`; PASS after gated reload PID `57682`
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks detect --no-git --source <ops-lib|ops-tests|M18-phase> --redact`
+  - result: PASS; no leaks found
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS; gated reload executed, raw hard-stop command not run directly
+  - command: local M18 plugin canaries
+  - result: PASS; terminal final reply renders Chinese; fenced Python remains fenced; inferred execution-result sentence removed; A-layer returns `None`
+- Runtime state:
+  - B-layer: enabled; `hermes-language-layer` enabled and `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `85253` before reload, `57682` after reload
+- Not executed:
+  - No Telegram messages sent by Codex.
+  - No slash commands executed by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No raw `hermes gateway restart`; reload used `hermes-ops` gate.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/cache/PID/lock changes.
+- Risks:
+  - Live Telegram manual observation was not performed by Codex; acceptance rests on local plugin canaries and gateway reload validation under the requested no-Telegram constraint.
+- Next task: stage intended repo files, run staged checks, commit, and push `origin main`.

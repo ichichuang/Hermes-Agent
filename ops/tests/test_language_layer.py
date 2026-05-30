@@ -68,6 +68,41 @@ def test_b_layer_live_m11_status_reply_renders_natural_chinese() -> None:
     assert "无需执行操作" in result.text
 
 
+def test_b_layer_m18_terminal_backed_final_reply_renders_chinese_and_preserves_tokens() -> None:
+    text = (
+        "I checked /Users/cc/.hermes/config.yaml and https://example.com/docs with the terminal. "
+        "The gateway is running normally with PID 85253. "
+        "B-layer is enabled. A-layer is disabled. local_model_enabled is false. "
+        "display.language remains unchanged. /sethome was not executed. "
+        "Model deepseek-chat stays on DeepSeek. No action is required."
+    )
+    result = render_b_layer(text)
+
+    assert result.changed is True
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert "I checked" not in result.text
+    assert "The gateway is running normally" not in result.text
+    assert "B-layer is enabled" not in result.text
+    assert "A-layer is disabled" not in result.text
+    assert "local_model_enabled is false" not in result.text
+    assert "was not executed" not in result.text
+    assert "Model deepseek-chat stays on DeepSeek" not in result.text
+    assert "我已通过终端检查" in result.text
+    assert "网关正在正常运行，PID 85253" in result.text
+    assert "B-layer 已启用" in result.text
+    assert "A-layer 已禁用" in result.text
+    assert "local_model_enabled 为 false" in result.text
+    assert "display.language 保持不变" in result.text
+    assert "/sethome 未执行" in result.text
+    assert "模型 deepseek-chat 仍使用 DeepSeek" in result.text
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "display.language" in result.text
+    assert "/sethome" in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+
+
 def test_b_layer_m12_rewrites_gateway_reset_keys_and_tip_icon() -> None:
     result = render_b_layer("gateway.reset.header_default\n\ngateway.reset.tip")
     assert result.changed is True
@@ -259,6 +294,25 @@ def test_b_layer_removes_inferred_execution_output_when_told_not_to_execute() ->
     assert result.changed is True
     assert result.text.count("hello hermes") == 1
     assert "Output:" not in result.text
+
+
+def test_b_layer_m18_removes_unlabeled_inferred_execution_result_after_preserved_fence() -> None:
+    source_text = 'Do not execute this code; keep the fenced block unchanged:\n```python\nprint("hello hermes")\n```'
+    response_text = (
+        "Here is the code block unchanged:\n"
+        "```python\n"
+        "print(\"hello hermes\")\n"
+        "```\n"
+        "If it ran, it would print hello hermes."
+    )
+    result = render_b_layer(response_text, source_text=source_text)
+
+    assert result.changed is True
+    assert '```python\nprint("hello hermes")\n```' in result.text
+    assert result.text.endswith('```')
+    assert result.text.count("hello hermes") == 1
+    assert "If it ran" not in result.text
+    assert "would print" not in result.text
 
 
 def test_b_layer_preserves_multiple_fenced_blocks_exactly() -> None:

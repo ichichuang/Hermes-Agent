@@ -66,6 +66,13 @@ CODE_BLOCK_PRESERVE_INTENT_PATTERN = re.compile(
 INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
     r"(?is)\n{1,3}(?:Output|Result|Execution output|输出|运行结果)\s*[:：][\s\S]*$"
 )
+UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
+    r"(?is)\n{1,3}"
+    r"(?:(?:if\s+(?:it|this code|the code)\s+(?:ran|runs|is run|were run),?\s*)|"
+    r"(?:running|executing)\s+(?:it|this code|the code)\s+)?"
+    r"(?:(?:it|this code|the code)\s+)?"
+    r"(?:would|will|prints?|outputs?|returns?|produces?|displays?|shows?)\b[\s\S]*$"
+)
 MODEL_PROVIDER_CONTEXT_HEADER_PATTERN = re.compile(r"^(?P<label>Model|Provider|Context)\s*:\s*(?P<value>.+)$")
 TOOL_TRACE_LINE_PATTERN = re.compile(
     r"^(?P<indent>\s*)"
@@ -169,6 +176,8 @@ def _strip_forbidden_execution_output(text: str, *, source_text: str | None = No
     last_fence_end = fence_matches[-1].end()
     tail = text[last_fence_end:]
     inferred = INFERRED_EXECUTION_OUTPUT_PATTERN.search(tail)
+    if not inferred:
+        inferred = UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN.search(tail)
     if not inferred:
         return text
     return (text[:last_fence_end] + tail[: inferred.start()]).rstrip()
@@ -323,6 +332,64 @@ FIXED_ENGLISH_SENTENCE_REWRITES = {
     "Permission denied.": "权限不足。",
     "Command timed out.": "命令超时。",
 }
+
+
+def _translate_known_terminal_object(value: str) -> str:
+    return {
+        "the gateway status": "网关状态",
+        "gateway status": "网关状态",
+        "the configuration": "配置",
+        "configuration": "配置",
+    }.get(value, value)
+
+
+def _rewrite_known_english_sentence(sentence: str) -> str | None:
+    fixed = FIXED_ENGLISH_SENTENCE_REWRITES.get(sentence)
+    if fixed is not None:
+        return fixed
+
+    protected_token = r"__HERMES_LANG_PROTECTED_\d+__"
+    checked_pair = re.fullmatch(
+        rf"I checked (?P<first>{protected_token}) and (?P<second>{protected_token}) with the terminal\.",
+        sentence,
+    )
+    if checked_pair:
+        return f"我已通过终端检查 {checked_pair.group('first')} 和 {checked_pair.group('second')}。"
+
+    checked_single = re.fullmatch(r"I checked (?P<target>.+) with the terminal\.", sentence)
+    if checked_single:
+        target = _translate_known_terminal_object(checked_single.group("target"))
+        return f"我已通过终端检查{target}。"
+
+    gateway_pid = re.fullmatch(r"The gateway is running normally with PID (?P<pid>\d+)\.", sentence)
+    if gateway_pid:
+        return f"网关正在正常运行，PID {gateway_pid.group('pid')}。"
+
+    flag_match = re.fullmatch(r"(?P<name>B-layer|A-layer) is (?P<state>enabled|disabled)\.", sentence)
+    if flag_match:
+        state = "已启用" if flag_match.group("state") == "enabled" else "已禁用"
+        return f"{flag_match.group('name')} {state}。"
+
+    local_model = re.fullmatch(r"local_model_enabled is (?P<state>true|false)\.", sentence)
+    if local_model:
+        return f"local_model_enabled 为 {local_model.group('state')}。"
+
+    unchanged = re.fullmatch(rf"(?P<key>{protected_token}) remains unchanged\.", sentence)
+    if unchanged:
+        return f"{unchanged.group('key')} 保持不变。"
+
+    not_executed = re.fullmatch(rf"(?P<command>{protected_token}) was not executed\.", sentence)
+    if not_executed:
+        return f"{not_executed.group('command')} 未执行。"
+
+    model_provider = re.fullmatch(
+        rf"Model (?P<model>{protected_token}) stays on (?P<provider>{protected_token})\.",
+        sentence,
+    )
+    if model_provider:
+        return f"模型 {model_provider.group('model')} 仍使用 {model_provider.group('provider')}。"
+
+    return None
 
 
 def _rewrite_model_provider_context_header(text: str) -> str | None:
@@ -490,8 +557,9 @@ def _deterministic_english_to_zh(text: str) -> str | None:
         return f"请检查 {path}，访问 {url}，运行 {command}，并保持 {key} 和 {model_name} 使用 {provider}。"
 
     sentences = [sentence for sentence in re.split(r"(?<=[.!?])\s+", stripped) if sentence]
-    if sentences and all(sentence in FIXED_ENGLISH_SENTENCE_REWRITES for sentence in sentences):
-        return "".join(FIXED_ENGLISH_SENTENCE_REWRITES[sentence] for sentence in sentences)
+    rewritten_sentences = [_rewrite_known_english_sentence(sentence) for sentence in sentences]
+    if rewritten_sentences and all(sentence is not None for sentence in rewritten_sentences):
+        return "".join(sentence for sentence in rewritten_sentences if sentence is not None)
     lines = stripped.splitlines()
     if lines and lines[0] == "Right now Hermes is running one thing:":
         rendered_lines: list[str] = []
