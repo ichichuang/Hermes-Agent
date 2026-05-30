@@ -1,0 +1,173 @@
+diff --git a/hermes_cli/plugins.py b/hermes_cli/plugins.py
+index 0000000..0000000 100644
+--- a/hermes_cli/plugins.py
++++ b/hermes_cli/plugins.py
+@@
+     # Transform LLM output before it's returned to the user.
+     # Plugins return a string to replace the response text, or None/empty to leave unchanged.
+     # First non-None string wins. Useful for vocabulary/personality transformation.
+     "transform_llm_output",
++    # Transform assistant-authored interim/pre-tool commentary immediately
++    # before gateway delivery. Plugins return a string to replace the
++    # displayed text, or None/empty to leave unchanged. First non-empty
++    # string wins. Core must not expose chat IDs, auth metadata, tokens, or
++    # adapter-private metadata in this hook.
++    "transform_interim_output",
+     "pre_llm_call",
+     "post_llm_call",
+diff --git a/gateway/run.py b/gateway/run.py
+index 0000000..0000000 100644
+--- a/gateway/run.py
++++ b/gateway/run.py
+@@
+             def _interim_assistant_cb(text: str, *, already_streamed: bool = False) -> None:
+                 if not _run_still_current():
+                     return
++                def _transform_interim_output(
++                    value: str,
++                    *,
++                    surface: str,
++                    already_streamed_value: bool,
++                ) -> str:
++                    original = str(value or "")
++                    if not original.strip():
++                        return original
++                    try:
++                        from hermes_cli.plugins import invoke_hook as _invoke_hook
++                        _results = _invoke_hook(
++                            "transform_interim_output",
++                            text=original,
++                            surface=surface,
++                            session_id=session_id or "",
++                            model=model,
++                            platform=platform_key,
++                            already_streamed=already_streamed_value,
++                        )
++                        for _result in _results:
++                            if isinstance(_result, str) and _result:
++                                return _result
++                    except Exception as exc:
++                        logger.warning("transform_interim_output hook failed: %s", exc)
++                    return original
+                 if _stream_consumer is not None:
+                     if already_streamed:
+                         _stream_consumer.on_segment_break()
+                     else:
+-                        _stream_consumer.on_commentary(text)
++                        _stream_consumer.on_commentary(
++                            _transform_interim_output(
++                                text,
++                                surface="commentary",
++                                already_streamed_value=already_streamed,
++                            )
++                        )
+                     return
+                 if already_streamed or not _status_adapter or not str(text or "").strip():
+                     return
++                transformed_text = _transform_interim_output(
++                    text,
++                    surface="status",
++                    already_streamed_value=already_streamed,
++                )
+                 safe_schedule_threadsafe(
+                     _status_adapter.send(
+                         _status_chat_id,
+-                        text,
++                        transformed_text,
+                         metadata=_status_thread_metadata,
+                     ),
+                     _loop_for_step,
+diff --git a/tests/test_transform_interim_output_hook.py b/tests/test_transform_interim_output_hook.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_transform_interim_output_hook.py
+@@
++def test_valid_hooks_includes_transform_interim_output():
++    from hermes_cli.plugins import VALID_HOOKS
++
++    assert "transform_interim_output" in VALID_HOOKS
++
++
++def test_interim_hook_noop_when_no_plugin(fake_gateway):
++    fake_gateway.emit_interim("Let me check what's happening on my end.")
++
++    assert fake_gateway.commentary == ["Let me check what's happening on my end."]
++
++
++def test_interim_hook_none_or_empty_return_keeps_original(fake_gateway, plugin_manager):
++    plugin_manager.register_hook("transform_interim_output", lambda **kwargs: None)
++    plugin_manager.register_hook("transform_interim_output", lambda **kwargs: "")
++
++    fake_gateway.emit_interim("Let me check what's happening on my end.")
++
++    assert fake_gateway.commentary == ["Let me check what's happening on my end."]
++
++
++def test_interim_hook_first_non_empty_string_wins(fake_gateway, plugin_manager):
++    plugin_manager.register_hook("transform_interim_output", lambda **kwargs: "")
++    plugin_manager.register_hook("transform_interim_output", lambda **kwargs: "我来检查当前状态。")
++    plugin_manager.register_hook("transform_interim_output", lambda **kwargs: "SHOULD_NOT_WIN")
++
++    fake_gateway.emit_interim("Let me check what's happening on my end.")
++
++    assert fake_gateway.commentary == ["我来检查当前状态。"]
++
++
++def test_interim_hook_exception_fails_open(fake_gateway, plugin_manager):
++    def boom(**kwargs):
++        raise RuntimeError("test failure")
++
++    plugin_manager.register_hook("transform_interim_output", boom)
++
++    fake_gateway.emit_interim("Let me check what's happening on my end.")
++
++    assert fake_gateway.commentary == ["Let me check what's happening on my end."]
++
++
++def test_interim_hook_preserves_slash_code_path_url_json_yaml(fake_gateway, plugin_manager):
++    protected = (
++        "Use /sethome, keep `/Users/cc/.hermes/config.yaml`, "
++        "visit https://example.com, preserve {\"model\": \"deepseek-chat\"}, "
++        "and keep yaml key provider: deepseek.\n\n"
++        "```python\nprint(\"hello hermes\")\n```"
++    )
++
++    def chinese_renderer(**kwargs):
++        text = kwargs["text"]
++        assert "/sethome" in text
++        assert "```python" in text
++        return text.replace("Use ", "请使用 ", 1)
++
++    plugin_manager.register_hook("transform_interim_output", chinese_renderer)
++    fake_gateway.emit_interim(protected)
++
++    rendered = fake_gateway.commentary[0]
++    assert "/sethome" in rendered
++    assert "/Users/cc/.hermes/config.yaml" in rendered
++    assert "https://example.com" in rendered
++    assert '"model": "deepseek-chat"' in rendered
++    assert "provider: deepseek" in rendered
++    assert "```python\nprint(\"hello hermes\")\n```" in rendered
++
++
++def test_already_streamed_segment_break_does_not_duplicate_transform(fake_gateway, plugin_manager):
++    calls = []
++    plugin_manager.register_hook(
++        "transform_interim_output",
++        lambda **kwargs: calls.append(kwargs) or "我来检查当前状态。",
++    )
++
++    fake_gateway.emit_interim("Let me check what's happening on my end.", already_streamed=True)
++
++    assert calls == []
++    assert fake_gateway.commentary == []
++    assert fake_gateway.segment_breaks == 1
++
++
++def test_transform_llm_output_final_response_still_unchanged_by_interim_hook(agent, plugin_manager):
++    plugin_manager.register_hook("transform_interim_output", lambda **kwargs: "我来检查当前状态。")
++
++    final = agent.run_final_response("Final response.")
++
++    assert final == "Final response."

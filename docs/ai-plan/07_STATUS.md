@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M23-accept-scope-or-design-core-hook |
-| Overall status | LANG_M23_DESIGN_CORE_HOOK |
-| Final decision | `DESIGN_CORE_HOOK`: keep current B-layer hookable-only behavior enabled, but do not accept real interim/pre-tool/status commentary English output as final scope. Use a narrow upstream additive `transform_interim_output` hook proposal as the next path; no core/runtime changes were implemented in M23. |
+| Current task | LANG-M24-upstream-interim-output-hook-pr-prep |
+| Overall status | LANG_M24_PR_PREPARED |
+| Final decision | `PR_PREPARED`: upstream/core PR package prepared for additive `transform_interim_output`; no Hermes core/site-packages/live plugin/runtime changes were applied. |
 
 ## Task status
 
@@ -83,6 +83,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M22 | BLOCKED | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish | RED `5 failed, 33 deselected`; targeted GREEN `5 passed, 33 deselected`; full pytest PASS `69 passed` before/after reload; config/plugins/gateway PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; M22 plugin canaries PASS | Final decision `BLOCKED_WITH_EVIDENCE`; hookable B-layer output fixed and loaded, but true pre-tool/interim commentary path bypasses `transform_llm_output`; no commit/push |
 | LANG-M22B | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish/reports/M22B-disposition.md | dirty diff review PASS; pytest PASS `69 passed`; config/plugins/gateway PASS; `git diff --check` PASS; high-confidence diff secret scan PASS; gitleaks source/test PASS | Final decision `KEEP_SAFE_PARTIAL_CHANGES`; no rollback; commit/push proceeds only for the four intended files after staged checks |
 | LANG-M23 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook | read-only validation PASS; staged checks PASS | Final decision `DESIGN_CORE_HOOK`; current B-layer scope documented; upstream `transform_interim_output` proposal drafted; no core changes |
+| LANG-M24 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep | source inspection PASS; read-only validation PASS; `git diff --check` PASS; `gitleaks dir docs/ai-plan` PASS | Final decision `PR_PREPARED`; upstream/core package and non-applied patch sketch complete; no core/runtime changes |
 
 ## Update template
 
@@ -1936,3 +1937,71 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - Until upstream hook support exists and the B-layer plugin registers it, true interim/pre-tool/status commentary may still appear in English.
 - Next task: LANG-M24-upstream-interim-output-hook-pr-prep.
+
+### Update 2026-05-30 16:23:43 CST — LANG-M24-upstream-interim-output-hook-pr-prep
+
+- Status: DONE
+- Final decision: PR_PREPARED
+- Scope:
+  - Prepared upstream/core PR package for additive `transform_interim_output`.
+  - Drafted payload schema, no-op return contract, mutation boundaries, protected-token requirements, fail-open behavior, ordering, Telegram Markdown constraints, migration/rollback, upstream PR checklist, and test plan.
+  - Drafted non-applied core patch sketch only; no runtime/core patch was applied.
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M24-upstream-interim-output-hook-pr-prep.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M24-draft-core-hook.patch
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-source-boundary-evidence.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-final-decision.md
+- Evidence:
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M24-upstream-interim-output-hook-pr-prep.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M24-draft-core-hook.patch
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-source-boundary-evidence.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-final-decision.md
+- Source path evidence:
+  - `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/hermes_cli/plugins.py:128` has `VALID_HOOKS` without interim/commentary/status-output transform hook.
+  - `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/run_agent.py:7961` emits real interim assistant commentary through `interim_assistant_callback`.
+  - `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py:15298` routes interim text to commentary/status fallback before any transform hook.
+  - `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/run_agent.py:15874` invokes `transform_llm_output` only for final output.
+- Validation:
+  - command: `git status --short`
+  - result: PASS; changes limited to intended docs before staging
+  - command: `hermes gateway status`
+  - result: PASS; gateway loaded, PID `97699`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS; `b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks dir /Users/cc/.hermes/docs/ai-plan --redact --log-level error`
+  - result: PASS
+  - command: `git diff --cached --name-only`
+  - result: PASS; staged files limited to intended docs
+  - command: `git diff --cached --check`
+  - result: PASS
+  - command: `gitleaks protect --staged --redact --log-level error`
+  - result: PASS
+- Runtime state:
+  - B-layer: enabled; `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `97699`; no lifecycle action executed
+- Not executed:
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No Telegram send.
+  - No slash command.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/live plugin/provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock changes.
+  - No GitHub PR opened.
+- Risks:
+  - Until upstream hook support exists and the B-layer plugin registers it, true interim/pre-tool/status commentary may still appear in English.
+- Next task: operator-approved `LANG-M25-upstream-hook-pr-submission` or continue tracking the interim hook blocker.

@@ -331,3 +331,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: `ACCEPT_SCOPE`，即将当前 hookable-only B-layer 作为最终范围；`UNSAFE_MONKEYPATCH_CORE_RUNTIME`，即用 plugin monkeypatch 或 site-packages/core runtime hack 接管 commentary send path。
 - Consequence: M23 不实现 core change，不改变 runtime 状态，不 reload gateway，不发送 Telegram，不运行 slash command。后续 phase 应以 `/Users/cc/.hermes/docs/ai-plan/LANG-M23-interim-output-hook-proposal.md` 为基础准备 upstream issue/PR 草案；在官方 hook 可用前，真实 interim/pre-tool/status commentary 仍是已知限制。
 - Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M23-interim-output-hook-proposal.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook/reports/M23-final-decision.md`
+
+## ADR-0042 — LANG-M24 准备 transform_interim_output 上游 PR 包而不改 runtime
+
+- Decision: M24 最终决策为 `PR_PREPARED`。准备 upstream/core PR package，拟新增 additive `transform_interim_output` hook，在 `gateway/run.py:_interim_assistant_cb` delivery boundary 调用，覆盖 stream commentary 与 status-adapter fallback；本轮只提交 docs/evidence 和非应用 patch sketch。
+- Reason: 只读源码证据确认 `run_agent.py:_emit_interim_assistant_message` 发出真实 mid-turn commentary，`gateway/run.py:_interim_assistant_cb` 在 `StreamConsumer.on_commentary(text)` 或 `_status_adapter.send(..., text, ...)` 前没有 transform hook；`transform_llm_output` 只在 final response 完成后调用。当前 API 的 `VALID_HOOKS` 没有 supported interim/commentary/status-output transform hook，且 monkeypatch/site-packages runtime edits 不符合 M24 约束。
+- Alternatives considered: 使用 `transform_status_output` 作为更泛化 hook；直接修改 Hermes core/site-packages；让 plugin monkeypatch gateway callback/adapter send；启用 A-layer；调用 Ollama/local model；由 Codex 发送 Telegram 或执行 slash command 复测；打开 GitHub PR。
+- Consequence: M24 不改变 live runtime，不 reload gateway，不发送外部消息，不运行 slash command，不修改 provider/model/settings/credentials/config/env。后续必须获得明确 operator approval 才能打开 upstream issue/PR；官方 hook 合入前，真实 interim/pre-tool/status commentary 仍是已知限制。
+- Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M24-upstream-interim-output-hook-pr-prep.md`; `/Users/cc/.hermes/docs/ai-plan/LANG-M24-draft-core-hook.patch`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep/reports/M24-final-decision.md`
