@@ -291,3 +291,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 因两项均需 polish 而给出 `NO-GO`；继续沿用旧 placeholder-based `BLOCKED`；由 Codex 发送 Telegram 或运行 slash command 补测；启用 A-layer；调用 Ollama/local model；执行 gateway restart/reload；修改 Hermes core/site-packages、provider/model/settings/credentials/config/env。
 - Consequence: M19 以 `GO_WITH_POLISH` 关闭；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `57682` 前后稳定。后续 polish 应聚焦：tool/terminal final replies 完整中文渲染、避免 large English final bodies、精确保留 fenced code blocks、除非明确请求否则不推断 execution output；`/start` unknown-command 英文响应另记为未来 gateway/slash-message localization polish，不作为 M19 失败。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M19-post-M18-live-observation/reports/M19-final-status.md`
+
+## ADR-0037 — LANG-M20 用 B-layer deterministic renderer 修复 M19 剩余 live polish
+
+- Decision: 在 `LANG-M20-tool-terminal-final-renderer-fix` 中只修改 `ops/lib/language_layer.py` 与 `ops/tests/test_language_layer.py`：扩展 terminal/tool final reply 的 deterministic 中文句型映射，并扩展 no-execute fenced-code tail stripping 以删除 `execution result` 类推断；随后通过既有 `LANG-M6` exact allowlist 的 `hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart` 加载。
+- Reason: 只读检查显示 Hermes runtime 在 tool loop 后调用 `transform_llm_output(response_text=final_response)`，plugin test 证明 M19 terminal final reply 走 B-layer hook；失败原因是 renderer 覆盖不足，不是 core-only bypass。M19 的 no-execute 失败是 `The execution result would be...` 类 tail 未被既有模式识别。
+- Alternatives considered: 修改 plugin wrapper；启用 A-layer；调用 Ollama/local model 泛化翻译；修改 Hermes core/site-packages；由 Codex 发送 Telegram 或运行 slash command live-test；直接运行 raw `hermes gateway restart`；修改 provider/model/settings/credentials/config/env。
+- Consequence: M20 通过 RED/GREEN、full pytest `64 passed`、config/plugins/gateway checks、diff check、targeted gitleaks、rollback snapshot、gated reload 和 plugin canaries；gateway PID `57682` -> `70594`。B-layer enabled，A-layer disabled，local model/Ollama disabled。Unknown unmatched English prose remains unchanged rather than guessed or routed to local model.
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/reports/M20-final-status.md`

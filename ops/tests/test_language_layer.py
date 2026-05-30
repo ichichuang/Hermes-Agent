@@ -315,6 +315,58 @@ def test_b_layer_m18_removes_unlabeled_inferred_execution_result_after_preserved
     assert "would print" not in result.text
 
 
+def test_b_layer_m20_tool_terminal_final_reply_renders_natural_chinese_without_large_english_body() -> None:
+    text = (
+        "I checked the Hermes gateway status with the terminal. "
+        "The terminal status result shows the gateway is active with PID 57682. "
+        "B-layer remains enabled. A-layer remains disabled. local_model_enabled remains false. "
+        "The provider remains DeepSeek and the model remains deepseek-chat. "
+        "I did not change /Users/cc/.hermes/config.yaml, https://example.com/docs, "
+        "display.language, or approvals.destructive_slash_confirm. "
+        "/sethome was not executed. No Telegram message was sent. No action is needed."
+    )
+    result = render_b_layer(text)
+
+    assert result.changed is True
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert "I checked the Hermes gateway status" not in result.text
+    assert "terminal status result shows" not in result.text
+    assert "B-layer remains enabled" not in result.text
+    assert "A-layer remains disabled" not in result.text
+    assert "No Telegram message was sent" not in result.text
+    assert "我已通过终端检查 Hermes 网关状态" in result.text
+    assert "网关处于活动状态，PID 57682" in result.text
+    assert "B-layer 保持启用" in result.text
+    assert "A-layer 保持禁用" in result.text
+    assert "local_model_enabled 保持 false" in result.text
+    assert "服务商保持 DeepSeek，模型保持 deepseek-chat" in result.text
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "display.language" in result.text
+    assert "approvals.destructive_slash_confirm" in result.text
+    assert "/sethome" in result.text
+    assert "DeepSeek" in result.text
+    assert "deepseek-chat" in result.text
+
+
+def test_b_layer_m20_no_execute_code_explanation_does_not_infer_execution_result() -> None:
+    source_text = 'Do not execute this Python code; keep it fenced:\n```python\nprint("hello hermes")\n```'
+    response_text = (
+        "Here is the fenced Python code unchanged:\n"
+        "```python\n"
+        "print(\"hello hermes\")\n"
+        "```\n\n"
+        "The execution result would be `hello hermes`."
+    )
+    result = render_b_layer(response_text, source_text=source_text)
+
+    assert result.changed is True
+    assert result.text == 'Here is the fenced Python code unchanged:\n```python\nprint("hello hermes")\n```'
+    assert result.text.count("hello hermes") == 1
+    assert "execution result" not in result.text.lower()
+    assert "would be" not in result.text
+
+
 def test_b_layer_preserves_multiple_fenced_blocks_exactly() -> None:
     text = (
         "Configuration saved.\n"
@@ -496,3 +548,36 @@ def test_plugin_b_layer_uses_volatile_user_message_for_code_block_preservation(m
     assert '```python\nprint("hello hermes")\n```' in rendered
     assert rendered.count("hello hermes") == 1
     assert "运行后会输出" not in rendered
+
+
+def test_plugin_m20_transform_llm_output_handles_terminal_final_reply_path(monkeypatch, tmp_path: Path) -> None:
+    if not PLUGIN_PATH.exists():
+        raise AssertionError(f"plugin missing: {PLUGIN_PATH}")
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        '{"b_enabled": true, "a_enabled": false, "local_model_enabled": false, "timeout_ms": 5000}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HERMES_LANG_LAYER_CONFIG", str(config_path))
+    monkeypatch.delenv("HERMES_LANG_LAYER_A_ENABLED", raising=False)
+    monkeypatch.delenv("HERMES_LANG_LAYER_LOCAL_MODEL", raising=False)
+
+    spec = importlib.util.spec_from_file_location("hermes_language_layer_plugin_m20_terminal_test", PLUGIN_PATH)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    response_text = (
+        "I checked the Hermes gateway status with the terminal. "
+        "The terminal status result shows the gateway is active with PID 57682. "
+        "B-layer remains enabled. A-layer remains disabled. local_model_enabled remains false. "
+        "The provider remains DeepSeek and the model remains deepseek-chat. No action is needed."
+    )
+    rendered = module.transform_llm_output(response_text=response_text)
+
+    assert module.pre_llm_call(user_message="检查 Hermes 状态") is None
+    assert rendered is not None
+    assert "I checked the Hermes gateway status" not in rendered
+    assert "terminal status result shows" not in rendered
+    assert "我已通过终端检查 Hermes 网关状态" in rendered
+    assert "网关处于活动状态，PID 57682" in rendered

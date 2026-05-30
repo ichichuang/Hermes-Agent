@@ -64,11 +64,16 @@ CODE_BLOCK_PRESERVE_INTENT_PATTERN = re.compile(
     r"(?i)(?:不要[^。\n]*(?:改写|修改)[^。\n]*代码块|do\s+not\s+(?:rewrite|modify|change)[^.\n]*code\s+block)"
 )
 INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
-    r"(?is)\n{1,3}(?:Output|Result|Execution output|输出|运行结果)\s*[:：][\s\S]*$"
+    r"(?is)\n{1,3}(?:"
+    r"(?:Output|Result|Execution output|输出|运行结果)\s*[:：]|"
+    r"(?:The\s+)?execution\s+result\b"
+    r")[\s\S]*$"
 )
 UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
     r"(?is)\n{1,3}"
     r"(?:(?:if\s+(?:it|this code|the code)\s+(?:ran|runs|is run|were run),?\s*)|"
+    r"(?:when\s+(?:it|this code|the code)\s+(?:runs|is run|is executed|were run|executes),?\s*)|"
+    r"(?:if\s+you\s+(?:run|execute)\s+(?:it|this code|the code),?\s*)|"
     r"(?:running|executing)\s+(?:it|this code|the code)\s+)?"
     r"(?:(?:it|this code|the code)\s+)?"
     r"(?:would|will|prints?|outputs?|returns?|produces?|displays?|shows?)\b[\s\S]*$"
@@ -338,9 +343,18 @@ def _translate_known_terminal_object(value: str) -> str:
     return {
         "the gateway status": "网关状态",
         "gateway status": "网关状态",
+        "the Hermes gateway status": "Hermes 网关状态",
+        "Hermes gateway status": "Hermes 网关状态",
+        "Hermes status": "Hermes 状态",
         "the configuration": "配置",
         "configuration": "配置",
     }.get(value, value)
+
+
+def _zh_join_english_list(value: str) -> str:
+    normalized = value.replace(", and ", ", ").replace(", or ", ", ").replace(" and ", ", ").replace(" or ", ", ")
+    parts = [part.strip() for part in normalized.split(",") if part.strip()]
+    return "、".join(parts) if parts else value
 
 
 def _rewrite_known_english_sentence(sentence: str) -> str | None:
@@ -359,20 +373,46 @@ def _rewrite_known_english_sentence(sentence: str) -> str | None:
     checked_single = re.fullmatch(r"I checked (?P<target>.+) with the terminal\.", sentence)
     if checked_single:
         target = _translate_known_terminal_object(checked_single.group("target"))
-        return f"我已通过终端检查{target}。"
+        separator = " " if re.match(r"[A-Za-z_]", target) else ""
+        return f"我已通过终端检查{separator}{target}。"
+
+    terminal_status = re.fullmatch(
+        r"The terminal status result shows the gateway is (?P<state>active|running|healthy|running normally)"
+        r"(?: with PID (?P<pid>\d+))?\.",
+        sentence,
+    )
+    if terminal_status:
+        state = terminal_status.group("state")
+        state_zh = "处于活动状态" if state == "active" else "正在正常运行"
+        pid = terminal_status.group("pid")
+        pid_text = f"，PID {pid}" if pid else ""
+        return f"终端状态结果显示网关{state_zh}{pid_text}。"
 
     gateway_pid = re.fullmatch(r"The gateway is running normally with PID (?P<pid>\d+)\.", sentence)
     if gateway_pid:
         return f"网关正在正常运行，PID {gateway_pid.group('pid')}。"
+
+    gateway_process = re.fullmatch(r"The gateway process is running and healthy\.", sentence)
+    if gateway_process:
+        return "网关进程正在运行且状态正常。"
 
     flag_match = re.fullmatch(r"(?P<name>B-layer|A-layer) is (?P<state>enabled|disabled)\.", sentence)
     if flag_match:
         state = "已启用" if flag_match.group("state") == "enabled" else "已禁用"
         return f"{flag_match.group('name')} {state}。"
 
+    flag_remains = re.fullmatch(r"(?P<name>B-layer|A-layer) remains (?P<state>enabled|disabled)\.", sentence)
+    if flag_remains:
+        state = "启用" if flag_remains.group("state") == "enabled" else "禁用"
+        return f"{flag_remains.group('name')} 保持{state}。"
+
     local_model = re.fullmatch(r"local_model_enabled is (?P<state>true|false)\.", sentence)
     if local_model:
         return f"local_model_enabled 为 {local_model.group('state')}。"
+
+    local_model_remains = re.fullmatch(r"local_model_enabled remains (?P<state>true|false)\.", sentence)
+    if local_model_remains:
+        return f"local_model_enabled 保持 {local_model_remains.group('state')}。"
 
     unchanged = re.fullmatch(rf"(?P<key>{protected_token}) remains unchanged\.", sentence)
     if unchanged:
@@ -382,12 +422,35 @@ def _rewrite_known_english_sentence(sentence: str) -> str | None:
     if not_executed:
         return f"{not_executed.group('command')} 未执行。"
 
+    did_not_execute = re.fullmatch(rf"I did not execute (?P<command>{protected_token})\.", sentence)
+    if did_not_execute:
+        return f"{did_not_execute.group('command')} 未执行。"
+
+    did_not_change = re.fullmatch(r"I did not change (?P<items>.+)\.", sentence)
+    if did_not_change:
+        return f"我没有更改 {_zh_join_english_list(did_not_change.group('items'))}。"
+
+    no_telegram = re.fullmatch(rf"No (?:Telegram|{protected_token}) messages? (?:was|were) sent\.", sentence)
+    if no_telegram:
+        return "未发送 Telegram 消息。"
+
+    no_slash = re.fullmatch(r"No slash command was executed\.", sentence)
+    if no_slash:
+        return "未执行 slash command。"
+
     model_provider = re.fullmatch(
         rf"Model (?P<model>{protected_token}) stays on (?P<provider>{protected_token})\.",
         sentence,
     )
     if model_provider:
         return f"模型 {model_provider.group('model')} 仍使用 {model_provider.group('provider')}。"
+
+    provider_model = re.fullmatch(
+        rf"The provider remains (?P<provider>{protected_token}) and the model remains (?P<model>{protected_token})\.",
+        sentence,
+    )
+    if provider_model:
+        return f"服务商保持 {provider_model.group('provider')}，模型保持 {provider_model.group('model')}。"
 
     return None
 

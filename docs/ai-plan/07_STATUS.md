@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M19-post-M18-live-observation |
-| Overall status | LANG_M19_GO_WITH_POLISH |
-| Final decision | GO_WITH_POLISH for M19 because screenshot-derived operator observations classify M19-01 and M19-02 as `NEEDS_POLISH`, with no protected-token corruption or gateway issue observed. B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, and gateway PID remained `57682` before/after read-only validation. |
+| Current task | LANG-M20-tool-terminal-final-renderer-fix |
+| Overall status | LANG_M20_GO_RELOADED_REVALIDATED |
+| Final decision | GO_RELOADED_REVALIDATED for M20 because targeted RED/GREEN, full ops pytest, config/plugins/gateway checks, diff check, targeted secret scans, gated reload, and M20 plugin canaries all passed. B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, and gateway PID changed from `57682` to `70594` through gated reload. |
 
 ## Task status
 
@@ -78,6 +78,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M9-RERUN | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted `gitleaks` scan; gateway PID `85253` before/after; B-layer enabled; A-layer disabled | Final decision `GO_WITH_POLISH`; M9-01 NEEDS_POLISH, M9-02 NEEDS_POLISH; gateway issues none; protected-token corruption none observed; recommendations captured for Chinese rendering and fenced-code exact preservation |
 | LANG-M18 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish | RED `2 failed, 28 passed`; targeted GREEN `30 passed`; full pytest PASS `61 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted `gitleaks` PASS; gated reload PASS; post-reload M18 plugin canaries PASS | Final decision `GO_RELOADED_REVALIDATED`; deterministic terminal/tool final-reply Chinese rendering added; unlabeled inferred execution-result tail removed for no-execute fenced-code replies; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `85253` -> `57682`; B-layer enabled; A-layer disabled; local model/Ollama disabled |
 | LANG-M19 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M19-post-M18-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted secret scan; gateway PID `57682` before/after; B-layer enabled; A-layer disabled; local model/Ollama disabled | Final decision `GO_WITH_POLISH`; M19-01 NEEDS_POLISH, M19-02 NEEDS_POLISH; protected-token corruption none observed; gateway issues none observed; `/start` unknown-command English response recorded as future gateway/slash-message localization polish, not an M19 failure |
+| LANG-M20 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix | RED `3 failed, 30 passed`; targeted GREEN `33 passed`; full pytest PASS `64 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted `gitleaks` PASS; gated reload PASS; M20 plugin canaries PASS | Final decision `GO_RELOADED_REVALIDATED`; tool/terminal final replies render Chinese for M19-proven shapes; no-execute fenced Python execution-result inference stripped; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `57682` -> `70594`; B-layer enabled; A-layer disabled; local model/Ollama disabled |
 
 ## Update template
 
@@ -1639,3 +1640,63 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - Do not infer execution output unless explicitly requested.
   - Consider later gateway/slash system-message localization.
 - Next task: targeted LANG-M20 polish for full Chinese tool/terminal final rendering and no-execution code-block behavior.
+
+### Update 2026-05-30 14:40:55 CST — LANG-M20-tool-terminal-final-renderer-fix
+
+- Status: DONE
+- Final decision: GO_RELOADED_REVALIDATED
+- Scope:
+  - Fixed B-layer deterministic rendering for terminal/tool-backed final replies that M19 proved could remain mostly English.
+  - Fixed no-execute fenced Python replies that could still infer an `execution result`.
+  - No A-layer enablement, no Ollama/local model call, no Telegram send, no slash command, no Hermes core/site-packages edit, no provider/model/settings/credentials/config/env change.
+- Files changed:
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/*
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/reports/M20-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/canaries/m20-plugin-canaries.txt
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/rollback/
+- Hook path:
+  - `run_agent.py` calls `transform_llm_output` after the tool-calling loop with `response_text=final_response`.
+  - The M20 plugin test proved this path is hookable by B-layer; the observed issue was deterministic renderer coverage, not a core-only bypass.
+- Validation:
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_language_layer.py -q`
+  - result: RED PASS before implementation (`3 failed, 30 passed`); targeted GREEN PASS after implementation (`33 passed`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`64 passed`)
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only, no values recorded
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes gateway status`
+  - result: PASS before reload PID `57682`; PASS after gated reload PID `70594`
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks detect --no-git --source <ops-lib|ops-tests|M20-phase> --redact`
+  - result: PASS; no leaks found
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS; gated reload executed, raw hard-stop command not run directly
+  - command: M20 plugin canaries
+  - result: PASS; terminal final reply renders Chinese; fenced Python remains fenced; inferred execution-result sentence removed; A-layer returns `None`
+- Runtime state:
+  - B-layer: enabled; `hermes-language-layer` enabled and `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `57682` before reload, `70594` after reload
+- Not executed:
+  - No Telegram messages sent by Codex.
+  - No slash commands executed by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No raw `hermes gateway restart`; reload used `hermes-ops` gate.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/cache/PID/lock changes.
+- Risks:
+  - Deterministic coverage is intentionally limited to M19-proven safe shapes. Unknown English prose remains unchanged rather than guessed or sent to local model.
+- Next task: stage intended repo files, run staged checks, commit, and push `origin main`.
