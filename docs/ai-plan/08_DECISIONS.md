@@ -355,3 +355,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 立即克隆 upstream 仓库；直接基于 live site-packages 实现补丁；打开 PR；启用 A-layer；调用 Ollama/local model；发送 Telegram 或运行 slash command；执行 gateway lifecycle action。
 - Consequence: 本地 runtime 无变化；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `97699` 未触发生命周期操作。后续如 maintainer feedback 出现，应先记录并调整方案；如 operator 明确批准 PR，再创建独立 upstream-focused branch/worktree。
 - Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M26-upstream-feedback-or-pr-prep.md`; `/Users/cc/.hermes/docs/ai-plan/LANG-M26-pr-implementation-plan.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-upstream-feedback.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-final-decision.md`
+
+## ADR-0045 — LANG-M27 记录 upstream triage labels 但不创建 PR 分支
+
+- Decision: M27 最终决策为 `FEEDBACK_RECORDED`。上游 issue `NousResearch/hermes-agent#35264` 仍为 `OPEN` 且 comments 为 `0`，但已由 `alt-glitch` 添加 `type/feature`、`comp/gateway`、`comp/plugins`、`P3` 标签；因此记录 metadata-only upstream triage，并更新下一步 PR 指南，不创建分支、不打开 PR。
+- Reason: 用户要求检查 comments、labels、assignees、milestone、linked PR，并在有反馈时总结和更新实施计划。本轮反馈只包含标签，没有评论、assignee、milestone 或 linked PR；当前 prompt 没有明确批准 PR branch creation 或 PR opening。
+- Alternatives considered: 继续判定为 `NO_FEEDBACK_YET`；立即创建 upstream branch/worktree；打开 PR；修改 live Hermes core/site-packages；启用 A-layer；调用 Ollama/local model；发送 Telegram 或运行 slash command；执行 gateway lifecycle action。
+- Consequence: M26 的 `transform_interim_output` PR plan 结构保持有效，但后续 PR 应明确对齐 `type/feature`、`comp/gateway`、`comp/plugins` 和 `P3` triage；本地 runtime 无变化，B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled。
+- Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M27-upstream-feedback-monitor.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-upstream-feedback.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-final-decision.md`

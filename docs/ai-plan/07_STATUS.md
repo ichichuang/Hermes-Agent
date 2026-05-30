@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M26-upstream-feedback-or-pr-prep |
-| Overall status | LANG_M26_PR_PLAN_READY |
-| Final decision | `PR_PLAN_READY`: upstream issue https://github.com/NousResearch/hermes-agent/issues/35264 remains open with no comments or maintainer feedback; safe `transform_interim_output` PR implementation plan prepared; no live runtime change. |
+| Current task | LANG-M27-upstream-feedback-monitor-or-approved-pr-branch |
+| Overall status | LANG_M27_FEEDBACK_RECORDED |
+| Final decision | `FEEDBACK_RECORDED`: upstream issue https://github.com/NousResearch/hermes-agent/issues/35264 remains open with no comments, but now has triage labels `type/feature`, `comp/gateway`, `comp/plugins`, and `P3`; next-action plan updated; no PR branch approved or opened; no live runtime change. |
 
 ## Task status
 
@@ -86,6 +86,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M24 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep | source inspection PASS; read-only validation PASS; `git diff --check` PASS; `gitleaks dir docs/ai-plan` PASS | Final decision `PR_PREPARED`; upstream/core package and non-applied patch sketch complete; no core/runtime changes |
 | LANG-M25 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M25-accept-b-layer-scope-and-upstream-hook-submission | read-only validation PASS; upstream issue submitted; `git diff --check` PASS; targeted `gitleaks` PASS | Final decision `ACCEPTED_AND_SUBMITTED`; issue https://github.com/NousResearch/hermes-agent/issues/35264; B-layer accepted for hookable final-output paths; A-layer disabled |
 | LANG-M26 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep | issue feedback check PASS; PR plan ready; read-only validation PASS; `git diff --check` PASS; targeted `gitleaks` PASS | Final decision `PR_PLAN_READY`; issue open, comments `0`, feedback none; no core/runtime changes; no PR opened |
+| LANG-M27 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch | issue feedback check PASS; read-only validation PASS; `git diff --check` PASS; targeted secret scan PASS; staged checks PASS | Final decision `FEEDBACK_RECORDED`; issue open, comments `0`, labels `type/feature`, `comp/gateway`, `comp/plugins`, `P3`; no linked PR; no branch/PR approved; no core/runtime changes |
 
 ## Update template
 
@@ -2158,3 +2159,87 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - Upstream may request a different hook name, payload shape, or insertion point later; any feedback must be recorded before implementation.
   - Until official upstream support exists and local plugin registration is separately approved, true interim/pre-tool/status commentary remains a documented limitation.
 - Next task: `LANG-M27-upstream-feedback-monitor-or-approved-pr-branch`.
+
+### Update 2026-05-30 17:47:31 CST — LANG-M27-upstream-feedback-monitor-or-approved-pr-branch
+
+- Status: DONE
+- Final decision: FEEDBACK_RECORDED
+- Scope:
+  - Checked upstream issue `NousResearch/hermes-agent#35264`.
+  - Recorded issue state, labels, assignees, milestone, comments, and linked PR check.
+  - Updated the next-action plan based on upstream labels.
+  - Did not create a branch, clone upstream, modify live runtime, or open a PR.
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M27-upstream-feedback-monitor.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-upstream-feedback.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-plan-update.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-final-decision.md
+- Evidence:
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M27-upstream-feedback-monitor.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-upstream-feedback.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-plan-update.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-final-decision.md
+- Upstream issue:
+  - issue: https://github.com/NousResearch/hermes-agent/issues/35264
+  - state: `OPEN`
+  - comments: `0`
+  - labels: `type/feature`, `comp/gateway`, `comp/plugins`, `P3`
+  - assignees: none
+  - milestone: none
+  - linked PR: none found
+  - feedback recorded: `YES`, metadata-only triage labels
+- Validation:
+  - command: `gh issue view 35264 --repo NousResearch/hermes-agent --json url,title,state,stateReason,author,createdAt,updatedAt,closed,closedAt,comments,labels,assignees,milestone`
+  - result: PASS; issue accessible, open, labels present, comments empty
+  - command: GraphQL timeline query for labeled, assigned, milestoned, connected, cross-referenced, and referenced events
+  - result: PASS; labels found, linked PR none found
+  - command: `git status --short`
+  - result: PASS; repo changes limited to intended M27 docs before staging
+  - command: `hermes gateway status`
+  - result: PASS; gateway loaded, PID `97699`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS; `b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks dir docs/ai-plan --redact --no-banner`
+  - result: PASS
+  - command: `gitleaks dir /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch --redact --no-banner`
+  - result: PASS
+  - command: high-confidence added-diff secret scan
+  - result: PASS; no matches
+  - command: `git diff --cached --name-only`
+  - result: PASS; staged files limited to intended M27 docs
+  - command: `git diff --cached --check`
+  - result: PASS
+  - command: `gitleaks protect --staged --redact --no-banner`
+  - result: PASS
+  - command: high-confidence staged diff secret scan
+  - result: PASS; no matches
+- Runtime state:
+  - B-layer: enabled; `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `97699`; no lifecycle action executed
+- Not executed:
+  - No upstream PR opened.
+  - No upstream clone or branch created.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No Telegram send.
+  - No slash command.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock changes.
+- Risks:
+  - Upstream labels are metadata-only; maintainers may later request a different hook name, payload, scope, or no PR.
+  - Until official upstream support exists and local plugin registration is separately approved, true interim/pre-tool/status commentary remains a documented limitation.
+- Next task: `LANG-M28-operator-approved-upstream-pr-workspace` only if the operator explicitly approves PR work; otherwise continue read-only issue monitoring.
