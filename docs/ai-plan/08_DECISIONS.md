@@ -299,3 +299,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 修改 plugin wrapper；启用 A-layer；调用 Ollama/local model 泛化翻译；修改 Hermes core/site-packages；由 Codex 发送 Telegram 或运行 slash command live-test；直接运行 raw `hermes gateway restart`；修改 provider/model/settings/credentials/config/env。
 - Consequence: M20 通过 RED/GREEN、full pytest `64 passed`、config/plugins/gateway checks、diff check、targeted gitleaks、rollback snapshot、gated reload 和 plugin canaries；gateway PID `57682` -> `70594`。B-layer enabled，A-layer disabled，local model/Ollama disabled。Unknown unmatched English prose remains unchanged rather than guessed or routed to local model.
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix/reports/M20-final-status.md`
+
+## ADR-0038 — LANG-M21 真实截图观察后给出 GO_WITH_POLISH
+
+- Decision: 将 `LANG-M21-post-M20-live-observation` 关闭为 `GO_WITH_POLISH`，并按用户授权只提交 `docs/ai-plan/07_STATUS.md` 与 `docs/ai-plan/08_DECISIONS.md`。
+- Reason: 操作员提供了 screenshot-derived observations：M21-01 的 final answer body 已基本为自然中文且不再出现大段英文最终正文，但 pre-tool/status line `Let me check what's happening on my end.` 仍为英文；M21-02 中 `print("hello hermes")` 和 fenced Python code block 可见且未被破坏，但 assistant 在用户明确要求不执行时仍推断 execution result。未观察到 protected-token corruption 或 gateway issue。
+- Alternatives considered: 因两项均需 polish 而给出 `NO-GO`；由 Codex 发送 Telegram 或运行 slash command 补测；启用 A-layer；调用 Ollama/local model；执行 gateway restart/reload；修改 Hermes core/site-packages、provider/model/settings/credentials/config/env。
+- Consequence: M21 以 `GO_WITH_POLISH` 关闭；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `70594` 前后稳定。本轮只运行 read-only validation 和 staged checks；没有 Telegram/slash/gateway lifecycle side effect，没有 Hermes core/site-packages、provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock 变更。后续 polish 应聚焦中文 pre-tool/status text、本轮仍残留的 no-execute execution-result inference、fenced-code exact preservation，以及持续保护 slash commands、paths、URLs、JSON/YAML keys、model/provider names。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/reports/M21-final-status.md`

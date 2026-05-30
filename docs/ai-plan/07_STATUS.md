@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M20-tool-terminal-final-renderer-fix |
-| Overall status | LANG_M20_GO_RELOADED_REVALIDATED |
-| Final decision | GO_RELOADED_REVALIDATED for M20 because targeted RED/GREEN, full ops pytest, config/plugins/gateway checks, diff check, targeted secret scans, gated reload, and M20 plugin canaries all passed. B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, and gateway PID changed from `57682` to `70594` through gated reload. |
+| Current task | LANG-M21-post-M20-live-observation |
+| Overall status | LANG_M21_GO_WITH_POLISH |
+| Final decision | GO_WITH_POLISH for M21 because screenshot-derived post-M20 live observations show no protected-token corruption or gateway issue, but pre-tool/status localization and no-execute fenced-code behavior still need polish. B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, and gateway PID stayed `70594` across read-only validation. |
 
 ## Task status
 
@@ -79,6 +79,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M18 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish | RED `2 failed, 28 passed`; targeted GREEN `30 passed`; full pytest PASS `61 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted `gitleaks` PASS; gated reload PASS; post-reload M18 plugin canaries PASS | Final decision `GO_RELOADED_REVALIDATED`; deterministic terminal/tool final-reply Chinese rendering added; unlabeled inferred execution-result tail removed for no-execute fenced-code replies; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `85253` -> `57682`; B-layer enabled; A-layer disabled; local model/Ollama disabled |
 | LANG-M19 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M19-post-M18-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted secret scan; gateway PID `57682` before/after; B-layer enabled; A-layer disabled; local model/Ollama disabled | Final decision `GO_WITH_POLISH`; M19-01 NEEDS_POLISH, M19-02 NEEDS_POLISH; protected-token corruption none observed; gateway issues none observed; `/start` unknown-command English response recorded as future gateway/slash-message localization polish, not an M19 failure |
 | LANG-M20 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M20-tool-terminal-final-renderer-fix | RED `3 failed, 30 passed`; targeted GREEN `33 passed`; full pytest PASS `64 passed`; config/plugins/gateway PASS; `git diff --check` PASS; targeted `gitleaks` PASS; gated reload PASS; M20 plugin canaries PASS | Final decision `GO_RELOADED_REVALIDATED`; tool/terminal final replies render Chinese for M19-proven shapes; no-execute fenced Python execution-result inference stripped; reload command `hermes gateway restart` via `hermes-ops run --phase LANG-M6 --risk service-change`; PID `57682` -> `70594`; B-layer enabled; A-layer disabled; local model/Ollama disabled |
+| LANG-M21 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted secret scan; gateway PID `70594` before/after; B-layer enabled; A-layer disabled; local model/Ollama disabled | Final decision `GO_WITH_POLISH`; M21-01 NEEDS_POLISH, M21-02 NEEDS_POLISH; protected-token corruption none observed; gateway issues none observed; recommendations captured for Chinese pre-tool/status text, no-execute behavior, fenced-code exact preservation, and protected token preservation |
 
 ## Update template
 
@@ -1700,3 +1701,63 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - Deterministic coverage is intentionally limited to M19-proven safe shapes. Unknown English prose remains unchanged rather than guessed or sent to local model.
 - Next task: stage intended repo files, run staged checks, commit, and push `origin main`.
+
+### Update 2026-05-30 14:54:45 CST — LANG-M21-post-M20-live-observation
+
+- Status: DONE
+- Final decision: GO_WITH_POLISH
+- Operator observations:
+  - M21-01 tool/terminal Chinese rendering: NEEDS_POLISH. Final answer body is mostly natural Chinese and no longer has a large English final body, but the pre-tool/status line `Let me check what's happening on my end.` remains English.
+  - M21-02 fenced code block preservation: NEEDS_POLISH. The token `print("hello hermes")` is preserved and a fenced Python code block is visible, but the assistant still inferred an execution result even though the user said not to execute it.
+- Classification:
+  - M21-01 tool/terminal Chinese rendering: NEEDS_POLISH
+  - M21-02 fenced code block preservation: NEEDS_POLISH
+- Protected-token status:
+  - None observed. The fenced code token `print("hello hermes")` was preserved; no slash/path/URL/JSON/YAML/model/provider token corruption was reported in the screenshot-derived observations.
+- Runtime state:
+  - B-layer: enabled; `hermes-language-layer` enabled and `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID before/after read-only validation: `70594` / `70594`
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/reports/M21-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/reports/M21-final-status.md
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/reports/M21-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/reports/M21-final-status.md
+- Validation:
+  - command: `hermes gateway status`
+  - result: PASS before/after; service loaded, PID `70594`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only, no secret values recorded
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: `git status --short`
+  - result: PASS; only expected docs modified before staging
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS
+- Not executed:
+  - No Telegram message sent by Codex.
+  - No slash command executed by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock changes.
+- Risks:
+  - Pre-tool/status text can still remain English.
+  - Fenced code blocks can be preserved while the assistant still infers execution output against user intent.
+- Recommendations:
+  - Localize pre-tool/status text into Chinese.
+  - Do not infer execution output when the user says not to execute.
+  - Keep fenced code blocks exactly.
+  - Preserve slash commands, paths, URLs, JSON/YAML keys, and model/provider names.
+- Next task: targeted LANG-M22 polish for Chinese pre-tool/status localization and no-execute fenced-code behavior.
