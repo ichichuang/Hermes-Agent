@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M17-new-reset-header-metadata-polish |
-| Overall status | LANG_M17_GO_OPERATOR_TELEGRAM_PASS |
-| Final decision | GO for the M17 `/new` reset header/metadata/tip icon-palette polish because local patch, B-layer palette update, full ops pytest, gated reload, post-reload checks, reset-format canary, read-only finalization checks, and real operator Telegram `/new` observation all passed; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled; gateway PID/runs `47246/12` -> `18954/14` with current PID `18954` |
+| Current task | LANG-M9-post-polish-live-observation |
+| Overall status | LANG_M9_GO_WITH_POLISH_OPERATOR_OBSERVED |
+| Final decision | GO_WITH_POLISH for M9 post-polish live observation because both supplied operator observations are complete enough to classify; M9-01 and M9-02 both need further polish, but no gateway issue or protected-token corruption was observed; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled; gateway PID remained `85253` across read-only validation |
 
 ## Task status
 
@@ -75,6 +75,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M14RB | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch | pre/post hash verification PASS; gated restart PASS; full pytest PASS `48 passed`; `git diff --check` PASS; targeted secret scan PASS; repo cleanup PASS | Final decision `GO_ROLLBACK_COMPLETE`; restored `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` and `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/platforms/base.py`; PID `72219` -> `45833`; runs `8` -> `9`; B-layer enabled; A-layer disabled |
 | LANG-M16 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix | RED `3 failed, 1 passed`; GREEN `4 passed`; full pytest PASS `52 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset canary PASS; operator `/new` scoped observation PASS | Final decision `GO_SCOPED_PASS`; scoped target `gateway.reset.tip` PASS; full `/new` UX `GO_PARTIAL_WITH_BLOCKERS`; patched only `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` reset-tip fallback; PID `81093`; B-layer enabled; A-layer disabled; M17 blockers: `gateway.reset.header_default` raw key, metadata label/icon polish, Chinese tip body |
 | LANG-M17 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish | targeted RED `12 failed, 25 passed`; targeted GREEN `37 passed`; full pytest PASS `59 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset-format canary PASS; operator `/new` observation PASS; read-only finalization checks PASS | Final decision `GO`; patched `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py:_handle_reset_command` and `/Users/cc/.hermes/ops/lib/language_layer.py` icon palette; PID/runs `47246/12` -> `18954/14`; current PID `18954`; B-layer enabled; A-layer disabled |
+| LANG-M9-RERUN | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted `gitleaks` scan; gateway PID `85253` before/after; B-layer enabled; A-layer disabled | Final decision `GO_WITH_POLISH`; M9-01 NEEDS_POLISH, M9-02 NEEDS_POLISH; gateway issues none; protected-token corruption none observed; recommendations captured for Chinese rendering and fenced-code exact preservation |
 
 ## Update template
 
@@ -1464,3 +1465,65 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - M17 includes a local site-packages runtime patch that may be overwritten by a Hermes package update; repo commit contains only docs/tests/patch artifacts.
 - Next task: stage only requested repo-side files, run staged checks, commit, and push `origin main`.
+
+### Update 2026-05-30 12:28:15 CST — LANG-M9-post-polish-live-observation finalization
+
+- Status: DONE
+- Final decision: GO_WITH_POLISH
+- Operator observations:
+  - M9-01 English ordinary reply polish: NEEDS_POLISH. The `Hermes 返回了英文说明：` prefix no longer appeared, but a terminal/tool status check final answer body remained mostly English, so English tool-backed replies are not yet fully rendered into natural Chinese.
+  - M9-02 fenced code block preservation: NEEDS_POLISH. `print("hello hermes")` was preserved and the fenced code block shape appeared mostly preserved, but the assistant inferred/explained an execution result even though the user said not to execute it.
+- Gateway issues observed: none.
+- Protected-token status:
+  - protected-token corruption: none observed
+  - slash commands: preserved; none sent or run by Codex
+  - paths: no corruption observed
+  - URLs: no corruption observed
+  - fenced code blocks: content preserved for `print("hello hermes")`; exact shape still needs stricter preservation
+  - JSON/YAML keys: no corruption observed
+  - model/provider names: no settings changed and no corruption observed
+- Polish recommendations:
+  - Cover tool/terminal-result final replies with full Chinese rendering.
+  - Avoid mixed English final answer bodies.
+  - Preserve fenced code blocks exactly.
+  - Do not infer execution output unless explicitly requested.
+  - Preserve slash commands, paths, URLs, JSON/YAML keys, and model/provider names.
+- Runtime state:
+  - B-layer: enabled; `hermes-language-layer` enabled and `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID before/after read-only validation: `85253` / `85253`
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-final-status.md
+- Evidence:
+  - operator observations supplied in the 2026-05-30 finalization request
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-observation-results.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-final-status.md
+- Validation:
+  - command: `hermes gateway status`
+  - result: PASS before/after; service loaded, PID `85253`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; report records key names/status only, no secret values
+  - command: `git status --short`
+  - result: PASS; only expected docs files modified before staging
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted `gitleaks` scan
+  - result: PASS; no findings in targeted docs/report paths
+- Not executed:
+  - No Telegram messages sent by Codex.
+  - No slash commands executed by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No Hermes core/site-packages/code/provider/model/setting/credential/config/env/auth/session/log/state/cache/PID/lock change.
+- Risks:
+  - M9 is accepted only as `GO_WITH_POLISH`; tool-backed English final replies and exact fenced-code behavior still need a focused polish phase.
+- Next task: implement a scoped polish phase for terminal/tool-result Chinese rendering and exact fenced-code/no-execution-inference behavior.

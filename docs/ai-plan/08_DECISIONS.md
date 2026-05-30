@@ -267,3 +267,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 保持 `GO_PENDING_MANUAL_TELEGRAM` 等待 Codex 主动复测；由 Codex 发送 Telegram `/new`；执行 gateway reload/restart；启用 A-layer；调用 Ollama；修改 provider/model/credentials/config/env。
 - Consequence: M17 UX gate 关闭为 GO；本轮 finalization 只运行 read-only `hermes gateway status`、`hermes plugins list`、`hermes config check`、`git status --short`、`git diff --check` 和 targeted `gitleaks` scan；没有 runtime reload/restart、Telegram/slash side effect、A-layer/Ollama/provider/config/env 变更。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-final-status.md`
+
+## ADR-0034 — LANG-M9 真实观察后给出 GO_WITH_POLISH
+
+- Decision: 将 2026-05-30 的 `LANG-M9-post-polish-live-observation` rerun 从 `BLOCKED_OBSERVATIONS_INCOMPLETE` 更新为 `GO_WITH_POLISH`；两项 live observation 均可分类为 `NEEDS_POLISH`，但未观察到 gateway issue 或 protected-token corruption。
+- Reason: 操作员补齐了 M9-01 和 M9-02 观察。M9-01 中 `Hermes 返回了英文说明：` 前缀已消失，但 terminal/tool status check 的最终回答主体仍大多为英文，说明 tool-backed final replies 尚未完整自然中文化。M9-02 中 `print("hello hermes")` 被保留，fenced code block shape 基本保留，但 assistant 在用户明确要求不执行时仍推断/解释了执行输出。Read-only state 显示 B-layer enabled、A-layer disabled、local model/Ollama disabled、gateway PID `85253` pre/post stable。
+- Alternatives considered: 因两项均为 `NEEDS_POLISH` 而升级为 `NO-GO`；保持 `BLOCKED` 等待 Codex 主动复测；由 Codex 发送 Telegram 或 slash command 补测；启用 A-layer；调用 Ollama；重启/reload gateway；修改 provider/model/settings/credentials/config/env。
+- Consequence: 既有 M9 report 和 repo status/decision docs 记录最终 `GO_WITH_POLISH`；本轮只运行 read-only `hermes gateway status`、`hermes plugins list`、`hermes config check`、`git status --short`、`git diff --check` 和 targeted `gitleaks` scan；没有 Telegram/slash/gateway lifecycle side effect，没有 Hermes core/site-packages、provider/model/settings/credentials/config/env/auth/session/log/state/cache/PID/lock 变更。后续 polish 应覆盖 tool/terminal-result final replies 的完整中文渲染、避免 mixed English final bodies、精确保留 fenced code blocks、禁止在未请求时推断 execution output，并持续保护 slash commands、paths、URLs、JSON/YAML keys、model/provider names。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M9-post-polish-live-observation/reports/M9-final-status.md`
