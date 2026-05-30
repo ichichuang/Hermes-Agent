@@ -2243,3 +2243,95 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - Upstream labels are metadata-only; maintainers may later request a different hook name, payload, scope, or no PR.
   - Until official upstream support exists and local plugin registration is separately approved, true interim/pre-tool/status commentary remains a documented limitation.
 - Next task: `LANG-M28-operator-approved-upstream-pr-workspace` only if the operator explicitly approves PR work; otherwise continue read-only issue monitoring.
+
+### Update 2026-05-30 17:57:13 CST — LANG-M28-readonly-upstream-monitor-and-local-stability-check
+
+- Status: DONE
+- Final decision: NO_NEW_FEEDBACK_STABLE
+- Scope:
+  - Checked upstream issue `NousResearch/hermes-agent#35264`.
+  - Recorded issue state, labels, assignees, milestone, comments, timeline events, and linked PR search.
+  - Ran read-only local Hermes B-layer stability checks.
+  - Did not create a branch, clone upstream, modify live runtime, or open a PR.
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M28-upstream-monitor.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-upstream-monitor.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-local-stability.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-final-decision.md
+- Evidence:
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M28-upstream-monitor.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-upstream-monitor.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-local-stability.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-final-decision.md
+- Upstream issue:
+  - issue: https://github.com/NousResearch/hermes-agent/issues/35264
+  - state: `OPEN`
+  - updatedAt: `2026-05-30T09:38:02Z`
+  - comments: `0`
+  - labels: `type/feature`, `comp/gateway`, `comp/plugins`, `P3`
+  - assignees: none
+  - milestone: none
+  - linked PR: none found
+  - new maintainer feedback since M27: `NO`
+- Validation:
+  - command: `gh issue view 35264 --repo NousResearch/hermes-agent --json url,title,state,stateReason,author,createdAt,updatedAt,closed,closedAt,comments,labels,assignees,milestone`
+  - result: PASS; issue accessible, open, labels unchanged, comments empty
+  - command: GraphQL timeline query for labeled, assigned, milestoned, connected, cross-referenced, and referenced events
+  - result: PASS; only M27 label events found; linked PR none found
+  - command: `gh pr list --repo NousResearch/hermes-agent --search "35264" --state all --json number,title,state,url,author,createdAt,updatedAt,mergedAt,closedAt`
+  - result: PASS; empty list
+  - command: `git status --short`
+  - result: PASS; clean before M28 docs/evidence edits
+  - command: `git branch --show-current`
+  - result: PASS; `main`
+  - command: `git rev-parse HEAD`
+  - result: PASS; `c96de487da062a6c9e7773073ae73896f2afd93c`
+  - command: `hermes gateway status`
+  - result: PASS; gateway loaded, PID `97699`
+  - command: `ps -p 97699 -o pid=,ppid=,stat=,etime=,command=`
+  - result: PASS; PID `97699`; command is Hermes gateway `run --replace`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS; `b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`
+  - command: `git diff --check`
+  - result: PASS
+  - command: `command -v gitleaks`
+  - result: PASS; `/opt/homebrew/bin/gitleaks`
+  - command: `gitleaks dir docs/ai-plan --redact --no-banner`
+  - result: PASS; no leaks found
+  - command: `gitleaks dir /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check --redact --no-banner`
+  - result: PASS; no leaks found
+  - command: `git diff --cached --name-only`
+  - result: PASS; staged files limited to intended M28 docs
+  - command: `git diff --cached --check`
+  - result: PASS
+  - command: `gitleaks protect --staged --redact --no-banner`
+  - result: PASS; no leaks found
+- Runtime state:
+  - B-layer: enabled; `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `97699`; no lifecycle action executed
+- Not executed:
+  - No upstream PR opened.
+  - No upstream clone or branch created.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No Telegram send.
+  - No slash command.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock changes.
+- Risks:
+  - Upstream labels are metadata-only and no maintainer has commented; maintainers may later request a different hook name, payload, scope, or no PR.
+  - Until official upstream support exists and local plugin registration is separately approved, true interim/pre-tool/status commentary remains a documented limitation.
+- Next task: continue read-only issue monitoring; start upstream PR workspace work only after explicit operator approval.

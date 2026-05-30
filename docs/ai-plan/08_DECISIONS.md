@@ -363,3 +363,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 继续判定为 `NO_FEEDBACK_YET`；立即创建 upstream branch/worktree；打开 PR；修改 live Hermes core/site-packages；启用 A-layer；调用 Ollama/local model；发送 Telegram 或运行 slash command；执行 gateway lifecycle action。
 - Consequence: M26 的 `transform_interim_output` PR plan 结构保持有效，但后续 PR 应明确对齐 `type/feature`、`comp/gateway`、`comp/plugins` 和 `P3` triage；本地 runtime 无变化，B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled。
 - Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M27-upstream-feedback-monitor.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-upstream-feedback.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M27-upstream-feedback-monitor-or-approved-pr-branch/reports/M27-final-decision.md`
+
+## ADR-0046 — LANG-M28 无新增 upstream feedback 且本地 B-layer 稳定
+
+- Decision: M28 最终决策为 `NO_NEW_FEEDBACK_STABLE`。上游 issue `NousResearch/hermes-agent#35264` 仍为 `OPEN`，comments 为 `0`，无 assignee、milestone、linked PR 或晚于 M27 的 issue 更新；本地只读稳定性检查通过，B-layer enabled，A-layer disabled，`local_model_enabled=false`。
+- Reason: 用户要求执行轻量只读监控，不打开 PR、不修改代码、不修改 live runtime。`gh issue view`、GraphQL timeline、PR search 与 public issue page 均显示未出现新的 maintainer comment、implementation request、rejection、assignment、milestone 或 linked PR；`hermes gateway status`、`hermes plugins list`、`hermes config check` 和 lang-layer config evidence 均通过。
+- Alternatives considered: 将 M27 已记录的 triage labels 再次判定为新 `FEEDBACK_RECORDED`；创建 upstream branch/workspace；打开 PR；修改 live Hermes core/site-packages；启用 A-layer；调用 Ollama/local model；发送 Telegram 或运行 slash command；执行 gateway lifecycle action。
+- Consequence: M26/M27 的上游计划保持有效但不升级为 PR 工作；本地 runtime 无变化，gateway PID 保持 `97699`，B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled。后续继续只读监控，除非操作员明确授权独立 upstream PR phase。
+- Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M28-upstream-monitor.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-upstream-monitor.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M28-readonly-upstream-monitor-and-local-stability-check/reports/M28-final-decision.md`
