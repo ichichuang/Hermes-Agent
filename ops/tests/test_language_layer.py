@@ -367,6 +367,72 @@ def test_b_layer_m20_no_execute_code_explanation_does_not_infer_execution_result
     assert "would be" not in result.text
 
 
+def test_b_layer_m22_pretool_status_line_renders_chinese_without_prefix() -> None:
+    result = render_b_layer("Let me check what's happening on my end.")
+
+    assert result.changed is True
+    assert "Let me check what's happening on my end." not in result.text
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert result.text == "我先检查一下这边的情况。"
+
+
+def test_b_layer_m22_pretool_status_preserves_protected_tokens() -> None:
+    text = (
+        "Let me check what's happening on my end. "
+        "I will check /Users/cc/.hermes/config.yaml, https://example.com/docs, "
+        "display.language, deepseek-chat, DeepSeek, and /sethome without changing them."
+    )
+
+    result = render_b_layer(text)
+
+    assert result.changed is True
+    assert "Let me check what's happening on my end." not in result.text
+    assert "Hermes 返回了英文说明：" not in result.text
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "display.language" in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+    assert "/sethome" in result.text
+
+
+def test_b_layer_m22_no_execute_chinese_tail_does_not_infer_output() -> None:
+    source_text = '不要执行这段 Python 代码；保持代码块：\n```python\nprint("hello hermes")\n```'
+    response_text = (
+        "我会保持代码块不变：\n"
+        "```python\n"
+        "print(\"hello hermes\")\n"
+        "```\n\n"
+        "不会执行。它会输出 hello hermes。"
+    )
+
+    result = render_b_layer(response_text, source_text=source_text)
+
+    assert result.changed is True
+    assert result.text == '我会保持代码块不变：\n```python\nprint("hello hermes")\n```'
+    assert result.text.count("hello hermes") == 1
+    assert "会输出" not in result.text
+    assert "执行结果" not in result.text
+
+
+def test_b_layer_m22_no_execute_english_tail_does_not_infer_output() -> None:
+    source_text = 'Do not execute this Python code; keep it fenced:\n```python\nprint("hello hermes")\n```'
+    response_text = (
+        "Here is the fenced Python code unchanged:\n"
+        "```python\n"
+        "print(\"hello hermes\")\n"
+        "```\n\n"
+        "This would output hello hermes."
+    )
+
+    result = render_b_layer(response_text, source_text=source_text)
+
+    assert result.changed is True
+    assert result.text == 'Here is the fenced Python code unchanged:\n```python\nprint("hello hermes")\n```'
+    assert result.text.count("hello hermes") == 1
+    assert "would output" not in result.text
+
+
 def test_b_layer_preserves_multiple_fenced_blocks_exactly() -> None:
     text = (
         "Configuration saved.\n"
@@ -581,3 +647,26 @@ def test_plugin_m20_transform_llm_output_handles_terminal_final_reply_path(monke
     assert "terminal status result shows" not in rendered
     assert "我已通过终端检查 Hermes 网关状态" in rendered
     assert "网关处于活动状态，PID 57682" in rendered
+
+
+def test_plugin_m22_transform_llm_output_localizes_pretool_status_line(monkeypatch, tmp_path: Path) -> None:
+    if not PLUGIN_PATH.exists():
+        raise AssertionError(f"plugin missing: {PLUGIN_PATH}")
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        '{"b_enabled": true, "a_enabled": false, "local_model_enabled": false, "timeout_ms": 5000}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HERMES_LANG_LAYER_CONFIG", str(config_path))
+    monkeypatch.delenv("HERMES_LANG_LAYER_A_ENABLED", raising=False)
+    monkeypatch.delenv("HERMES_LANG_LAYER_LOCAL_MODEL", raising=False)
+
+    spec = importlib.util.spec_from_file_location("hermes_language_layer_plugin_m22_pretool_test", PLUGIN_PATH)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    rendered = module.transform_llm_output(response_text="Let me check what's happening on my end.")
+
+    assert module.pre_llm_call(user_message="检查 Hermes 状态") is None
+    assert rendered == "我先检查一下这边的情况。"

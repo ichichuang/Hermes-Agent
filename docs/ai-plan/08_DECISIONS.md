@@ -307,3 +307,19 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 因两项均需 polish 而给出 `NO-GO`；由 Codex 发送 Telegram 或运行 slash command 补测；启用 A-layer；调用 Ollama/local model；执行 gateway restart/reload；修改 Hermes core/site-packages、provider/model/settings/credentials/config/env。
 - Consequence: M21 以 `GO_WITH_POLISH` 关闭；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `70594` 前后稳定。本轮只运行 read-only validation 和 staged checks；没有 Telegram/slash/gateway lifecycle side effect，没有 Hermes core/site-packages、provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock 变更。后续 polish 应聚焦中文 pre-tool/status text、本轮仍残留的 no-execute execution-result inference、fenced-code exact preservation，以及持续保护 slash commands、paths、URLs、JSON/YAML keys、model/provider names。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation/reports/M21-final-status.md`
+
+## ADR-0039 — LANG-M22 hookable B-layer 修复通过但 pre-tool/interim commentary 阻塞
+
+- Decision: 在 `LANG-M22-pretool-status-and-no-execution-code-polish` 中保留 hookable B-layer 最小修复和测试，但最终决策为 `BLOCKED_WITH_EVIDENCE`，不 commit、不 push。
+- Reason: `transform_llm_output(response_text=final_response)` hookable path 已通过 RED/GREEN、full pytest、gated reload 和 plugin canaries；但 M21 观察中的 pre-tool/status line 属于 mid-turn interim assistant commentary 的高概率路径。证据显示 `run_agent.py:_emit_interim_assistant_message` 经 `gateway/run.py:_interim_assistant_cb` 进入 `StreamConsumer.on_commentary` 或 `_status_adapter.send`，该路径不调用 plugin `transform_llm_output`，且 `hermes_cli/plugins.py` `VALID_HOOKS` 没有 supported interim/commentary/status-output transform hook。在 M22 约束下不能修改 Hermes core/site-packages、不能启用 A-layer、不能调用 Ollama/local model，也不应通过 plugin monkeypatch core runtime。
+- Alternatives considered: 只凭 plugin canary 给 `GO_RELOADED_REVALIDATED`；修改 plugin wrapper 做 core monkeypatch；启用 A-layer 注入中文 pre-tool 约束；修改 Hermes core/site-packages commentary send path；回滚已通过的 hookable no-execute/status B-layer patch。
+- Consequence: Gateway 已通过既有 `LANG-M6` exact allowlist gated reload 加载 hookable B-layer patch，PID `70594` -> `97699`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled。真实 Telegram pre-tool/interim commentary 仍可能显示英文，直到用户授权一个 core/site-packages outgoing commentary transform、接受 hookable-only scope，或将该 surface 保留为已知 blocker。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish/reports/M22-final-status.md`
+
+## ADR-0040 — LANG-M22B 保留安全 B-layer 局部变更并关闭 dirty workspace
+
+- Decision: 在 `LANG-M22B-disposition-commit-or-rollback` 中保留 M22 的安全局部 B-layer 改进、测试和 BLOCKED_WITH_EVIDENCE 证据，并只允许四个 dirty repo 文件进入 stage/commit/push：`docs/ai-plan/07_STATUS.md`、`docs/ai-plan/08_DECISIONS.md`、`ops/lib/language_layer.py`、`ops/tests/test_language_layer.py`。
+- Reason: dirty diff 审查显示代码改动只覆盖 hookable `transform_llm_output` 路径的 deterministic status-line rendering 与 no-execute fenced-code tail stripping，测试只使用临时 config 且明确 `a_enabled=false`、`local_model_enabled=false`。未发现 Hermes core/site-packages edit、plugin core monkeypatch、provider/model/settings/credentials/config/env edit、A-layer/local-model enablement、Telegram/slash side effect 或 launchctl hard-stop action。
+- Alternatives considered: 回滚全部 M22 局部变更；只提交文档、不提交 B-layer 源码/测试；把 M22 阻塞面扩大到 core/site-packages 或 A-layer 修复；修改 plugin wrapper 做 runtime monkeypatch。
+- Consequence: M22 hookable B-layer improvement 被接受并发布，真实 pre-tool/interim commentary bypass 仍作为已知 blocker 保留。B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID 在 M22B read-only validation 中保持 `97699`。后续若要修复真实 commentary path，必须另开 phase 并显式授权 core/upstream hook path 或接受 hookable-only scope。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish/reports/M22B-disposition.md`

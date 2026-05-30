@@ -75,8 +75,14 @@ UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
     r"(?:when\s+(?:it|this code|the code)\s+(?:runs|is run|is executed|were run|executes),?\s*)|"
     r"(?:if\s+you\s+(?:run|execute)\s+(?:it|this code|the code),?\s*)|"
     r"(?:running|executing)\s+(?:it|this code|the code)\s+)?"
-    r"(?:(?:it|this code|the code)\s+)?"
+    r"(?:(?:it|this|this code|the code)\s+)?"
     r"(?:would|will|prints?|outputs?|returns?|produces?|displays?|shows?)\b[\s\S]*$"
+)
+ZH_UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN = re.compile(
+    r"(?is)\n{1,3}"
+    r"(?:(?:我)?(?:不会|不应|不要|未)(?:执行|运行)(?:它|这段代码|代码)?[。.!；;：:，,\s]*)?"
+    r"(?:(?:它|这段代码|这段\s*Python\s*代码|代码)\s*)?"
+    r"(?:会|将会|将|可能会)?(?:输出|打印|返回|显示|产生)[\s\S]*$"
 )
 MODEL_PROVIDER_CONTEXT_HEADER_PATTERN = re.compile(r"^(?P<label>Model|Provider|Context)\s*:\s*(?P<value>.+)$")
 TOOL_TRACE_LINE_PATTERN = re.compile(
@@ -183,6 +189,8 @@ def _strip_forbidden_execution_output(text: str, *, source_text: str | None = No
     inferred = INFERRED_EXECUTION_OUTPUT_PATTERN.search(tail)
     if not inferred:
         inferred = UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN.search(tail)
+    if not inferred:
+        inferred = ZH_UNLABELED_INFERRED_EXECUTION_OUTPUT_PATTERN.search(tail)
     if not inferred:
         return text
     return (text[:last_fence_end] + tail[: inferred.start()]).rstrip()
@@ -329,6 +337,8 @@ FIXED_B_REWRITES = (
 )
 
 FIXED_ENGLISH_SENTENCE_REWRITES = {
+    "Let me check what's happening on my end.": "我先检查一下这边的情况。",
+    "Let me check what’s happening on my end.": "我先检查一下这边的情况。",
     "Right now Hermes is running one thing:": "Hermes 当前只有一项正在运行：",
     "The gateway is running normally.": "网关正在正常运行。",
     "No action is required.": "无需执行操作。",
@@ -610,6 +620,14 @@ def _rewrite_gateway_system_text(text: str) -> str | None:
 def _deterministic_english_to_zh(text: str) -> str | None:
     stripped = text.strip()
     protected_token = r"__HERMES_LANG_PROTECTED_\d+__"
+
+    status_candidate = stripped
+    for old, new in FIXED_ENGLISH_SENTENCE_REWRITES.items():
+        if old.startswith("Let me check "):
+            status_candidate = status_candidate.replace(old, new)
+    if status_candidate != stripped:
+        return status_candidate
+
     technical_check = re.fullmatch(
         rf"Check ({protected_token}),? visit ({protected_token}),? run ({protected_token}),? "
         rf"and keep ({protected_token}) and ({protected_token}) on ({protected_token})\.",
