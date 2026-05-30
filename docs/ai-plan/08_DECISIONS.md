@@ -323,3 +323,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 回滚全部 M22 局部变更；只提交文档、不提交 B-layer 源码/测试；把 M22 阻塞面扩大到 core/site-packages 或 A-layer 修复；修改 plugin wrapper 做 runtime monkeypatch。
 - Consequence: M22 hookable B-layer improvement 被接受并发布，真实 pre-tool/interim commentary bypass 仍作为已知 blocker 保留。B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID 在 M22B read-only validation 中保持 `97699`。后续若要修复真实 commentary path，必须另开 phase 并显式授权 core/upstream hook path 或接受 hookable-only scope。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish/reports/M22B-disposition.md`
+
+## ADR-0041 — LANG-M23 采用上游 interim output hook 方案而非本地 runtime hack
+
+- Decision: M23 最终架构决策为 `DESIGN_CORE_HOOK`。当前 B-layer 作为 hookable-only final-output localization layer 继续接受并保持启用，但真实 pre-tool/interim/status commentary 不作为最终已接受范围；后续应准备 narrow upstream/core hook proposal，而不是修改本地 Hermes core/site-packages、启用 A-layer、调用本地模型或做 plugin monkeypatch。
+- Reason: M22/M22B 证据显示 `transform_llm_output` path 已 hookable 且测试通过，但 `run_agent.py:_emit_interim_assistant_message` 到 `gateway/run.py:_interim_assistant_cb` 再到 `StreamConsumer.on_commentary` 或 `_status_adapter.send` 的路径不调用 `transform_llm_output`。`hermes_cli/plugins.py` `VALID_HOOKS` 没有 interim/commentary/status-output transform hook。永久接受 hookable-only scope 会把一个已证实的用户可见英文面固化；本地 hack 则违反当前约束和升级可维护性。
+- Alternatives considered: `ACCEPT_SCOPE`，即将当前 hookable-only B-layer 作为最终范围；`UNSAFE_MONKEYPATCH_CORE_RUNTIME`，即用 plugin monkeypatch 或 site-packages/core runtime hack 接管 commentary send path。
+- Consequence: M23 不实现 core change，不改变 runtime 状态，不 reload gateway，不发送 Telegram，不运行 slash command。后续 phase 应以 `/Users/cc/.hermes/docs/ai-plan/LANG-M23-interim-output-hook-proposal.md` 为基础准备 upstream issue/PR 草案；在官方 hook 可用前，真实 interim/pre-tool/status commentary 仍是已知限制。
+- Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M23-interim-output-hook-proposal.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook/reports/M23-final-decision.md`

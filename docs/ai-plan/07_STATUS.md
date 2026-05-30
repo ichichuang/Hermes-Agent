@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M22B-disposition-commit-or-rollback |
-| Overall status | LANG_M22B_KEEP_SAFE_PARTIAL_CHANGES |
-| Final decision | KEEP_SAFE_PARTIAL_CHANGES for M22B because the dirty diff is limited to safe B-layer deterministic/no-execute improvements, focused tests, and M22/M22B evidence. No unsafe core bypass, plugin core monkeypatch, credentials/config/env edit, A-layer enablement, or local-model/Ollama enablement was found. B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, and gateway PID stayed `97699` during read-only validation. |
+| Current task | LANG-M23-accept-scope-or-design-core-hook |
+| Overall status | LANG_M23_DESIGN_CORE_HOOK |
+| Final decision | `DESIGN_CORE_HOOK`: keep current B-layer hookable-only behavior enabled, but do not accept real interim/pre-tool/status commentary English output as final scope. Use a narrow upstream additive `transform_interim_output` hook proposal as the next path; no core/runtime changes were implemented in M23. |
 
 ## Task status
 
@@ -82,6 +82,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M21 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M21-post-M20-live-observation | read-only finalization checks PASS: `hermes gateway status`, `hermes plugins list`, `hermes config check`, `git status --short`, `git diff --check`, targeted secret scan; gateway PID `70594` before/after; B-layer enabled; A-layer disabled; local model/Ollama disabled | Final decision `GO_WITH_POLISH`; M21-01 NEEDS_POLISH, M21-02 NEEDS_POLISH; protected-token corruption none observed; gateway issues none observed; recommendations captured for Chinese pre-tool/status text, no-execute behavior, fenced-code exact preservation, and protected token preservation |
 | LANG-M22 | BLOCKED | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish | RED `5 failed, 33 deselected`; targeted GREEN `5 passed, 33 deselected`; full pytest PASS `69 passed` before/after reload; config/plugins/gateway PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; M22 plugin canaries PASS | Final decision `BLOCKED_WITH_EVIDENCE`; hookable B-layer output fixed and loaded, but true pre-tool/interim commentary path bypasses `transform_llm_output`; no commit/push |
 | LANG-M22B | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M22-pretool-status-and-no-execution-code-polish/reports/M22B-disposition.md | dirty diff review PASS; pytest PASS `69 passed`; config/plugins/gateway PASS; `git diff --check` PASS; high-confidence diff secret scan PASS; gitleaks source/test PASS | Final decision `KEEP_SAFE_PARTIAL_CHANGES`; no rollback; commit/push proceeds only for the four intended files after staged checks |
+| LANG-M23 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook | read-only validation PASS; staged checks PASS | Final decision `DESIGN_CORE_HOOK`; current B-layer scope documented; upstream `transform_interim_output` proposal drafted; no core changes |
 
 ## Update template
 
@@ -1876,3 +1877,62 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - M22's true pre-tool/interim commentary blocker remains: Hermes has no supported plugin hook for that outgoing commentary/status path under current constraints.
 - Next task: run staged checks, commit only the four intended files, push `origin main`, then continue with a separate M23 decision on whether to accept hookable-only B-layer scope or authorize a narrow upstream/core hook path.
+
+### Update 2026-05-30 16:13:22 CST — LANG-M23-accept-scope-or-design-core-hook
+
+- Status: DONE
+- Final decision: DESIGN_CORE_HOOK
+- Scope:
+  - Accepted current B-layer as the stable hookable-only final-output layer.
+  - Did not accept real interim/pre-tool/status commentary English output as final UX scope.
+  - Rejected unsafe monkeypatch/core runtime hack.
+  - Drafted a minimal upstream additive hook proposal for `transform_interim_output`.
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M23-interim-output-hook-proposal.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook/reports/M23-final-decision.md
+- Evidence:
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M23-interim-output-hook-proposal.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook/reports/M23-final-decision.md
+- Validation:
+  - command: `git status --short`
+  - result: PASS; repo changes limited to intended docs before staging
+  - command: `hermes gateway status`
+  - result: PASS; gateway loaded, PID `97699`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS; `b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks dir /Users/cc/.hermes/docs/ai-plan --redact --log-level error`
+  - result: PASS
+  - command: `git diff --cached --name-only`
+  - result: PASS; staged files limited to intended docs
+  - command: `git diff --cached --check`
+  - result: PASS
+  - command: `gitleaks protect --staged --redact --log-level error`
+  - result: PASS
+  - command: high-confidence staged diff secret scan
+  - result: PASS
+- Runtime state:
+  - B-layer: enabled; `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `97699`; no lifecycle action executed
+- Not executed:
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No Telegram send.
+  - No slash command.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock changes.
+- Risks:
+  - Until upstream hook support exists and the B-layer plugin registers it, true interim/pre-tool/status commentary may still appear in English.
+- Next task: LANG-M24-upstream-interim-output-hook-pr-prep.
