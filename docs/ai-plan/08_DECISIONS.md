@@ -347,3 +347,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 不提交 upstream 只保留 manual package；直接准备 upstream PR；启用 A-layer；调用 Ollama/local model；修改本地 Hermes core/site-packages；用 plugin monkeypatch gateway callback 或 adapter send。
 - Consequence: 本地 runtime 无变化；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `97699` 未触发生命周期操作。后续应等待 upstream maintainer feedback；若要求实现，再在单独 upstream-focused branch/worktree 准备 PR，不把本地 Hermes runtime hack 当作生产依赖。
 - Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M25-b-layer-scope-acceptance.md`; `/Users/cc/.hermes/docs/ai-plan/LANG-M25-upstream-submission-record.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M25-accept-b-layer-scope-and-upstream-hook-submission/reports/M25-upstream-issue-body.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M25-accept-b-layer-scope-and-upstream-hook-submission/reports/M25-submission-record.md`
+
+## ADR-0044 — LANG-M26 无 upstream feedback 时只准备 PR 实施方案
+
+- Decision: M26 最终决策为 `PR_PLAN_READY`。上游 issue `NousResearch/hermes-agent#35264` 仍为 `OPEN`，comments 为 `0`，未记录 maintainer feedback；因此只准备 `transform_interim_output` 安全 PR implementation plan，不修改 live Hermes runtime，不打开 PR。
+- Reason: 用户要求先跟踪上游反馈；若无反馈则准备 PR plan only。`gh issue view` 和 public GitHub issue page 均显示 issue 可访问且暂无评论。未发现 separate disposable upstream clone，只有 live install path `/Users/cc/.local/share/hermes-agent-v0.14.0`，不应作为 PR 工作副本。
+- Alternatives considered: 立即克隆 upstream 仓库；直接基于 live site-packages 实现补丁；打开 PR；启用 A-layer；调用 Ollama/local model；发送 Telegram 或运行 slash command；执行 gateway lifecycle action。
+- Consequence: 本地 runtime 无变化；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `97699` 未触发生命周期操作。后续如 maintainer feedback 出现，应先记录并调整方案；如 operator 明确批准 PR，再创建独立 upstream-focused branch/worktree。
+- Evidence: `/Users/cc/.hermes/docs/ai-plan/LANG-M26-upstream-feedback-or-pr-prep.md`; `/Users/cc/.hermes/docs/ai-plan/LANG-M26-pr-implementation-plan.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-upstream-feedback.md`; `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-final-decision.md`

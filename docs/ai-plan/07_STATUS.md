@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M25-accept-b-layer-scope-and-upstream-hook-submission |
-| Overall status | LANG_M25_ACCEPTED_AND_SUBMITTED |
-| Final decision | `ACCEPTED_AND_SUBMITTED`: hookable-only B-layer scope accepted for local production use; upstream `transform_interim_output` proposal submitted as https://github.com/NousResearch/hermes-agent/issues/35264; A-layer remains disabled. |
+| Current task | LANG-M26-upstream-feedback-or-pr-prep |
+| Overall status | LANG_M26_PR_PLAN_READY |
+| Final decision | `PR_PLAN_READY`: upstream issue https://github.com/NousResearch/hermes-agent/issues/35264 remains open with no comments or maintainer feedback; safe `transform_interim_output` PR implementation plan prepared; no live runtime change. |
 
 ## Task status
 
@@ -85,6 +85,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M23 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M23-accept-scope-or-design-core-hook | read-only validation PASS; staged checks PASS | Final decision `DESIGN_CORE_HOOK`; current B-layer scope documented; upstream `transform_interim_output` proposal drafted; no core changes |
 | LANG-M24 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M24-upstream-interim-output-hook-pr-prep | source inspection PASS; read-only validation PASS; `git diff --check` PASS; `gitleaks dir docs/ai-plan` PASS | Final decision `PR_PREPARED`; upstream/core package and non-applied patch sketch complete; no core/runtime changes |
 | LANG-M25 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M25-accept-b-layer-scope-and-upstream-hook-submission | read-only validation PASS; upstream issue submitted; `git diff --check` PASS; targeted `gitleaks` PASS | Final decision `ACCEPTED_AND_SUBMITTED`; issue https://github.com/NousResearch/hermes-agent/issues/35264; B-layer accepted for hookable final-output paths; A-layer disabled |
+| LANG-M26 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep | issue feedback check PASS; PR plan ready; read-only validation PASS; `git diff --check` PASS; targeted `gitleaks` PASS | Final decision `PR_PLAN_READY`; issue open, comments `0`, feedback none; no core/runtime changes; no PR opened |
 
 ## Update template
 
@@ -2078,3 +2079,82 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 - Risks:
   - Until upstream hook support exists and the B-layer plugin registers it, true interim/pre-tool/status commentary may still appear in English.
 - Next task: monitor upstream issue and, if maintainers request implementation, prepare a separate upstream PR branch for `transform_interim_output` without changing local runtime.
+
+### Update 2026-05-30 17:34:56 CST — LANG-M26-upstream-feedback-or-pr-prep
+
+- Status: DONE
+- Final decision: PR_PLAN_READY
+- Scope:
+  - Checked upstream issue `NousResearch/hermes-agent#35264`.
+  - Recorded issue state and feedback status.
+  - Prepared a safe implementation plan for `transform_interim_output`.
+  - Did not implement a patch in live runtime and did not open an upstream PR.
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M26-upstream-feedback-or-pr-prep.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M26-pr-implementation-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/phase-report.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-upstream-feedback.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-pr-plan-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-final-decision.md
+- Evidence:
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M26-upstream-feedback-or-pr-prep.md
+  - /Users/cc/.hermes/docs/ai-plan/LANG-M26-pr-implementation-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-upstream-feedback.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep/reports/M26-final-decision.md
+- Upstream issue:
+  - issue: https://github.com/NousResearch/hermes-agent/issues/35264
+  - state: `OPEN`
+  - comments: `0`
+  - feedback recorded: `NO`
+- Validation:
+  - command: `gh issue view 35264 --repo NousResearch/hermes-agent --json url,title,state,author,createdAt,updatedAt,closedAt,comments`
+  - result: PASS; issue accessible, open, comments empty
+  - command: `git status --short`
+  - result: PASS; repo changes limited to intended M26 docs before staging
+  - command: `hermes gateway status`
+  - result: PASS; gateway loaded, PID `97699`
+  - command: `hermes plugins list`
+  - result: PASS; `hermes-language-layer` enabled
+  - command: `hermes config check`
+  - result: PASS; config version `23`; key names/status only
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS; `b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks dir docs/ai-plan --redact --no-banner`
+  - result: PASS
+  - command: `gitleaks dir /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M26-upstream-feedback-or-pr-prep --redact --no-banner`
+  - result: PASS
+  - command: high-confidence added-diff secret scan
+  - result: PASS; no matches
+  - command: `git diff --cached --name-only`
+  - result: PASS; staged files limited to intended M26 docs
+  - command: `git diff --cached --check`
+  - result: PASS
+  - command: `gitleaks protect --staged --redact --no-banner`
+  - result: PASS
+  - command: high-confidence staged diff secret scan
+  - result: PASS; no matches
+- Runtime state:
+  - B-layer: enabled; `b_enabled: true`
+  - A-layer: disabled; `a_enabled: false`
+  - local model/Ollama: disabled; `local_model_enabled: false`
+  - gateway PID: `97699`; no lifecycle action executed
+- Not executed:
+  - No upstream PR opened.
+  - No upstream clone created.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No Telegram send.
+  - No slash command.
+  - No gateway restart/reload/stop/start/kickstart/bootstrap/bootout.
+  - No launchctl enable/bootstrap/bootout/kickstart/load/unload.
+  - No Hermes core/site-packages/provider/model/settings/credentials/config/env/auth/session/log/state/DB/cache/PID/lock changes.
+- Risks:
+  - Upstream may request a different hook name, payload shape, or insertion point later; any feedback must be recorded before implementation.
+  - Until official upstream support exists and local plugin registration is separately approved, true interim/pre-tool/status commentary remains a documented limitation.
+- Next task: `LANG-M27-upstream-feedback-monitor-or-approved-pr-branch`.
