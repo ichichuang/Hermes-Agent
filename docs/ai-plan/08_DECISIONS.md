@@ -243,3 +243,27 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 将剩余 `/new` UX polish 纳入 M16；因剩余 blocker 将 M16 判定为 `NO-GO`；由 Codex 发送 Telegram 或运行 slash command 补测；重启或 reload gateway。
 - Consequence: M16 只提交 repo-side docs/tests/patch artifacts，不提交 site-packages 文件；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway 保持 PID `81093`；M17 应聚焦 `gateway.reset.header_default`、metadata label/icon polish 和中文 tip body。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix/M16-manual-telegram-finalization.md`
+
+## ADR-0031 — LANG-M17 只修 `/new` reset header、metadata 和中文 tip body
+
+- Decision: 在 `LANG-M17-new-reset-header-metadata-polish` 中进行明确授权的最小本地 site-packages patch，只修改 `gateway/run.py:_handle_reset_command` 的 `/new` reset 输出格式：缺 locale 时用中文 header fallback，metadata 渲染为 `🧠 模型`、`🔌 服务商`、`📚 上下文`，英文 reset tip body 改为中文，同时保留 model/provider/context 值和 slash command token；随后通过既有 `LANG-M6` exact allowlist 的 `hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart` 加载。
+- Reason: M16 scoped pass 后真实 `/new` 观察仍有三个 M17 blocker：`gateway.reset.header_default` raw key、旧 `Model/Provider/Context` label/icon、英文 reset tip body。用户本轮明确批准只对 `gateway/run.py` 做最小本地 patch，并禁止 `gateway/platforms/base.py`、M14 broad boundary transform、A-layer、Ollama、provider/model/credential/config/env、Telegram 外发和 slash command。
+- Alternatives considered: 添加 locale catalog；修改 `gateway/platforms/base.py`；恢复 M14 broad boundary transform；扩大 B-layer renderer；新增 M17 gate allowlist；直接运行 raw `hermes gateway restart`；由 Codex 发送 Telegram `/new` 验证。
+- Consequence: 本地 core patch 已加载到 live gateway；PID/runs `81093/11` -> `47246/12`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled；full pytest `57 passed`、config/plugins/status、diff check、secret scan、post-reload py_compile 和 local reset-format canary 均 PASS；最终决策为 `GO_PENDING_MANUAL_TELEGRAM`，等待 operator 手动发送 `/new` 验证 live Telegram 输出。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-validation-summary.md`
+
+## ADR-0032 — LANG-M17 追加 operator-requested icon palette refinement
+
+- Decision: 在同一 `LANG-M17-new-reset-header-metadata-polish` phase 中保留已通过的 `/new` reset 本地化，同时将 `/new` reset metadata 改为 `🫪 模型`、`❤️ 服务商`、`💭 上下文`；将 reset/tip 与 B-layer centralized palette 调整为 `🪄` reset/new、`💫` tip、`🧭` gateway、`🖥️` terminal、`⚙️` process、`🌐` browser、`📄` file、`🧰` tool、`⏳` running、`✅` done、`⚠️` notice、`⛔` interrupted。
+- Reason: 操作员确认 M17 已解决 raw reset key 泄漏，但要求替换剩余 plain/old icons，并明确指定 `模型` 使用 `🫪`、`服务商` 使用 `❤️`、`上下文` 使用 `💭`。本轮允许修改 `gateway/run.py`、`ops/lib/language_layer.py`、相关测试和 M17 docs/evidence。
+- Alternatives considered: 只改 `gateway/run.py` 不改 centralized B-layer palette；恢复 M14 broad transform；启用 A-layer；调用 Ollama；通过 Telegram 或 slash command live-test；直接运行 raw gateway restart。
+- Consequence: 本地 core/B-layer runtime 已通过 targeted RED/GREEN、full pytest `59 passed`、config/plugins/status、diff check、secret scan、post-reload py_compile、gated reload 和 local reset-format canary；gateway PID/runs `47246/12` -> `18954/14`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled；最终决策保持 `GO_PENDING_MANUAL_TELEGRAM`。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-icon-palette-refinement.md`
+
+## ADR-0033 — LANG-M17 真实 `/new` 观察后关闭为 GO
+
+- Decision: 将 `LANG-M17-new-reset-header-metadata-polish` 从 `GO_PENDING_MANUAL_TELEGRAM` 更新为 `GO`，并按用户授权只提交指定 repo-side docs/tests/patch artifacts，不提交 site-packages、HermesArchive、runtime、secret 或 config/env 文件。
+- Reason: 操作员提供真实 `/new` Telegram 输出：`🪄 新会话已开始。`、`🫪 模型：deepseek-chat`、`❤️ 服务商：deepseek`、`💭 上下文：1.0M tokens (detected)`、`💫 提示：新会话已就绪，可以直接发送下一条消息。`；未出现 `gateway.reset.header_default` 或 `gateway.reset.tip`，提示为中文，model/provider/context 值保持不变，指定 icon palette 满足。
+- Alternatives considered: 保持 `GO_PENDING_MANUAL_TELEGRAM` 等待 Codex 主动复测；由 Codex 发送 Telegram `/new`；执行 gateway reload/restart；启用 A-layer；调用 Ollama；修改 provider/model/credentials/config/env。
+- Consequence: M17 UX gate 关闭为 GO；本轮 finalization 只运行 read-only `hermes gateway status`、`hermes plugins list`、`hermes config check`、`git status --short`、`git diff --check` 和 targeted `gitleaks` scan；没有 runtime reload/restart、Telegram/slash side effect、A-layer/Ollama/provider/config/env 变更。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-final-status.md`

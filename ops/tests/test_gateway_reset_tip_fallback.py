@@ -9,7 +9,7 @@ from pathlib import Path
 
 SITE_PACKAGES = Path("/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages")
 GATEWAY_RUN = SITE_PACKAGES / "gateway" / "run.py"
-SESSION_INFO = "Model: deepseek-chat\nProvider: DeepSeek\nContext: 128000 tokens"
+SESSION_INFO = "Model: deepseek-chat\nProvider: deepseek\nContext: 128000 tokens"
 
 
 class _FakePlatform:
@@ -49,7 +49,7 @@ class _FakeSessionStore:
 
 
 class _FakeRunner:
-    def __init__(self, *, session_info: str = SESSION_INFO) -> None:
+    def __init__(self, *, session_info: str = SESSION_INFO, topic_header: str = "新会话已开始。") -> None:
         self.session_store = _FakeSessionStore()
         self.hooks = _FakeHooks()
         self._agent_cache_lock = None
@@ -58,6 +58,7 @@ class _FakeRunner:
         self._pending_model_notes: dict[str, object] = {}
         self._session_db = None
         self._session_info = session_info
+        self._topic_header = topic_header
 
     def _session_key_for_source(self, _source: object) -> str:
         return "telegram:user-m16"
@@ -78,7 +79,7 @@ class _FakeRunner:
         return self._session_info
 
     def _telegram_topic_new_header(self, _source: object) -> str:
-        return "新会话已开始。"
+        return self._topic_header
 
     def _is_telegram_topic_lane(self, _source: object) -> bool:
         return False
@@ -102,10 +103,20 @@ def _load_gateway_run():
     return module
 
 
-def _render_reset_reply(monkeypatch, tip_translation: str, *, random_tip: str = "试试 /status") -> str:
+def _render_reset_reply(
+    monkeypatch,
+    tip_translation: str,
+    *,
+    random_tip: str = "试试 /status",
+    session_info: str = SESSION_INFO,
+    topic_header: str = "新会话已开始。",
+    translations: dict[str, str] | None = None,
+) -> str:
     gateway_run = _load_gateway_run()
 
     def fake_t(key: str, **_kwargs: object) -> str:
+        if translations and key in translations:
+            return translations[key]
         if key == "gateway.reset.tip":
             return tip_translation
         return key
@@ -132,7 +143,12 @@ def _render_reset_reply(monkeypatch, tip_translation: str, *, random_tip: str = 
         _fake_module("tools.credential_files", "clear_credential_files", lambda: None),
     )
 
-    reply = asyncio.run(gateway_run.GatewayRunner._handle_reset_command(_FakeRunner(), _FakeEvent()))
+    reply = asyncio.run(
+        gateway_run.GatewayRunner._handle_reset_command(
+            _FakeRunner(session_info=session_info, topic_header=topic_header),
+            _FakeEvent(),
+        )
+    )
     assert isinstance(reply, gateway_run.EphemeralReply)
     return str(reply)
 
@@ -141,28 +157,32 @@ def test_new_reset_tip_uses_chinese_fallback_when_locale_returns_raw_key(monkeyp
     reply = _render_reset_reply(monkeypatch, "gateway.reset.tip")
 
     assert "gateway.reset.tip" not in reply
-    assert "✨ 提示：试试 /status" in reply
-    assert f"{SESSION_INFO}\n\n✨ 提示" in reply
+    assert "💫 提示：试试 /status" in reply
+    assert "💭 上下文：128000 tokens\n\n💫 提示" in reply
 
 
 def test_new_reset_tip_uses_chinese_fallback_when_locale_returns_empty(monkeypatch) -> None:
     reply = _render_reset_reply(monkeypatch, "")
 
     assert "gateway.reset.tip" not in reply
-    assert "✨ 提示：试试 /status" in reply
-    assert f"{SESSION_INFO}\n\n✨ 提示" in reply
+    assert "💫 提示：试试 /status" in reply
+    assert "💭 上下文：128000 tokens\n\n💫 提示" in reply
 
 
 def test_new_reset_tip_preserves_model_provider_context_metadata(monkeypatch) -> None:
     reply = _render_reset_reply(monkeypatch, "gateway.reset.tip")
 
-    assert "Model: deepseek-chat" in reply
-    assert "Provider: DeepSeek" in reply
-    assert "Context: 128000 tokens" in reply
+    assert "🫪 模型：deepseek-chat" in reply
+    assert "❤️ 服务商：deepseek" in reply
+    assert "💭 上下文：128000 tokens" in reply
+    assert "Model: deepseek-chat" not in reply
+    assert "Provider: deepseek" not in reply
+    assert "Context: 128000 tokens" not in reply
 
 
-def test_new_reset_tip_separates_existing_locale_tip_from_session_info(monkeypatch) -> None:
+def test_new_reset_tip_localizes_existing_english_locale_tip(monkeypatch) -> None:
     reply = _render_reset_reply(monkeypatch, "Tip: keep gateway healthy")
 
     assert "gateway.reset.tip" not in reply
-    assert f"{SESSION_INFO}\n\nTip: keep gateway healthy" in reply
+    assert "Tip: keep gateway healthy" not in reply
+    assert "💫 提示：新会话已就绪，可以直接发送下一条消息。" in reply

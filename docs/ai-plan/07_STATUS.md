@@ -8,9 +8,9 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 |---|---|
 | Started at | 2026-05-29 01:53:00 CST |
 | Active archive | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838 |
-| Current task | LANG-M16-new-reset-tip-fallback-fix |
-| Overall status | LANG_M16_SCOPED_PASS_M17_BLOCKERS |
-| Final decision | GO_SCOPED_PASS for the M16-only target `gateway.reset.tip` because the real operator `/new` observation confirms the raw key no longer leaks; full `/new` UX remains `GO_PARTIAL_WITH_BLOCKERS` because `gateway.reset.header_default` still leaks, metadata labels/icons still use the old diamond style, and the tip body remains English; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled, gateway remains PID `81093` |
+| Current task | LANG-M17-new-reset-header-metadata-polish |
+| Overall status | LANG_M17_GO_OPERATOR_TELEGRAM_PASS |
+| Final decision | GO for the M17 `/new` reset header/metadata/tip icon-palette polish because local patch, B-layer palette update, full ops pytest, gated reload, post-reload checks, reset-format canary, read-only finalization checks, and real operator Telegram `/new` observation all passed; B-layer remains enabled, A-layer remains disabled, local model/Ollama remains disabled; gateway PID/runs `47246/12` -> `18954/14` with current PID `18954` |
 
 ## Task status
 
@@ -74,6 +74,7 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
 | LANG-M14 | NO-GO | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14-minimal-core-boundary-transform-patch | local RED/GREEN PASS; full pytest PASS `55 passed`; read-only finalization checks PASS; operator Telegram T1 BLOCKED, T2 FAIL, T3 PASS, T4 NEEDS_POLISH, T5 BLOCKED_NOT_TESTED | Final decision `NO-GO_WITH_ROLLBACK`; `/new` still leaks `gateway.reset.tip`; tool-progress bubble still shows old `terminal` styling; protected tokens preserved; rollback required but not executed due no restart/reload instruction |
 | LANG-M14RB | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M14RB-rollback-failed-core-boundary-patch | pre/post hash verification PASS; gated restart PASS; full pytest PASS `48 passed`; `git diff --check` PASS; targeted secret scan PASS; repo cleanup PASS | Final decision `GO_ROLLBACK_COMPLETE`; restored `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` and `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/platforms/base.py`; PID `72219` -> `45833`; runs `8` -> `9`; B-layer enabled; A-layer disabled |
 | LANG-M16 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M16-new-reset-tip-fallback-fix | RED `3 failed, 1 passed`; GREEN `4 passed`; full pytest PASS `52 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset canary PASS; operator `/new` scoped observation PASS | Final decision `GO_SCOPED_PASS`; scoped target `gateway.reset.tip` PASS; full `/new` UX `GO_PARTIAL_WITH_BLOCKERS`; patched only `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py` reset-tip fallback; PID `81093`; B-layer enabled; A-layer disabled; M17 blockers: `gateway.reset.header_default` raw key, metadata label/icon polish, Chinese tip body |
+| LANG-M17 | DONE | /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish | targeted RED `12 failed, 25 passed`; targeted GREEN `37 passed`; full pytest PASS `59 passed`; pre/post `py_compile` PASS; config/plugins/status PASS; `git diff --check` PASS; targeted secret scan PASS; gated reload PASS; local reset-format canary PASS; operator `/new` observation PASS; read-only finalization checks PASS | Final decision `GO`; patched `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py:_handle_reset_command` and `/Users/cc/.hermes/ops/lib/language_layer.py` icon palette; PID/runs `47246/12` -> `18954/14`; current PID `18954`; B-layer enabled; A-layer disabled |
 
 ## Update template
 
@@ -1266,3 +1267,200 @@ Codex 必须在每个 milestone 完成、阻塞或跳过后更新此文件。
   - M16 remains a local site-packages patch and may be overwritten by a Hermes package update.
   - Full `/new` UX remains partial and should be handled as M17, not expanded under M16.
 - Next task: LANG-M17 for `/new` header, metadata polish, and Chinese tip body.
+
+### Update 2026-05-30 10:31:16 CST — LANG-M17-new-reset-header-metadata-polish
+
+- Status: DONE
+- Final decision: GO_PENDING_MANUAL_TELEGRAM
+- Scope:
+  - Only `/Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py:_handle_reset_command` was patched in local site-packages.
+  - No `gateway/platforms/base.py`, provider/model/credential, `config.yaml`, `.env`, A-layer, Ollama/local-model, Telegram-send, slash-command, commit, or push action was performed.
+- Files changed:
+  - /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/.hermes/ops/tests/test_gateway_reset_tip_fallback.py
+  - /Users/cc/.hermes/ops/tests/test_gateway_reset_header_metadata_polish.py
+  - /Users/cc/.hermes/ops/patches/M17-new-reset-header-metadata.patch
+  - /Users/cc/.hermes/ops/patches/M17-apply-core-patch.md
+  - /Users/cc/.hermes/ops/patches/M17-rollback-core-patch.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/*
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-patch-plan.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-implementation.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-rollback.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-final-status.md
+- Backup:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/backups/raw-private/gateway.run.py.pre-m17
+  - mode: `0600`
+  - pre-M17 SHA256: `e35ed8a7a5321b80edce3ec5f4d261b31341af160e0fd1f6781875bd40c102c4`
+  - post-patch SHA256: `635ca66e492c09eb1ed36c626cae96a9d5c375981d595453f1cc413e5a348dd5`
+- Validation:
+  - command: `python3 -m py_compile /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py`
+  - result: PASS before and after reload
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests/test_gateway_reset_tip_fallback.py /Users/cc/.hermes/ops/tests/test_gateway_reset_header_metadata_polish.py`
+  - result: PASS (`9 passed`)
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`57 passed`)
+  - command: `hermes config check`
+  - result: PASS
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (`findings=0`)
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (`EXECUTED`, exit code `0`; PID/runs `81093/11` -> `47246/12`)
+  - command: local reset-format canary
+  - result: PASS (no raw reset keys; `🧠 模型`, `🔌 服务商`, `📚 上下文`; Chinese tip body; slash commands preserved)
+- Layer state:
+  - B-layer enabled: `hermes-language-layer` enabled and `b_enabled: true`
+  - A-layer disabled: `a_enabled: false`
+  - local model/Ollama disabled: `local_model_enabled: false`
+- Not executed:
+  - No Telegram message sent by Codex.
+  - No slash command executed by Codex.
+  - No direct raw `hermes gateway restart`; reload used `hermes-ops` gate.
+  - No `launchctl enable/bootstrap/bootout`.
+  - No commit or push.
+- Risks:
+  - Manual Telegram `/new` validation is pending and must be performed by the operator.
+  - M17 remains a local site-packages patch and may be overwritten by a Hermes package update.
+- Next task: operator manually sends `/new` and confirms live Telegram output matches M17 canary expectations.
+
+### Update 2026-05-30 11:02:46 CST — LANG-M17-new-reset-header-metadata-polish icon-palette refinement
+
+- Status: DONE
+- Final decision: GO_PENDING_MANUAL_TELEGRAM
+- Scope:
+  - Kept the successful M17 `/new` reset localization.
+  - Updated `/new` reset metadata icons to `🫪 模型`, `❤️ 服务商`, `💭 上下文`.
+  - Updated reset/tip and centralized B-layer palette to `🪄` reset/new, `💫` tip, `🧭` gateway, `🖥️` terminal, `⚙️` process, `🌐` browser, `📄` file, `🧰` tool, `⏳` running, `✅` done, `⚠️` notice, `⛔` interrupted.
+- Files changed:
+  - /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py
+  - /Users/cc/.hermes/ops/lib/language_layer.py
+  - /Users/cc/.hermes/ops/tests/test_gateway_reset_tip_fallback.py
+  - /Users/cc/.hermes/ops/tests/test_gateway_reset_header_metadata_polish.py
+  - /Users/cc/.hermes/ops/tests/test_language_layer.py
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/*
+- Evidence:
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-icon-palette-refinement.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/icon-palette-pre-state
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/icon-palette-validation
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/icon-palette-reload
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/icon-palette-canary
+- Validation:
+  - command: `git status --short`
+  - result: PASS (dirty tree present from ongoing M17 docs/tests/patch artifacts; no unrelated rollback performed)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS
+  - command: `hermes gateway status`
+  - result: PASS, PID `18954`
+  - command: `rg -n '"(b_enabled|a_enabled|local_model_enabled)"' /Users/cc/.hermes/lang-layer/config.json`
+  - result: PASS (`b_enabled=true`, `a_enabled=false`, `local_model_enabled=false`)
+  - command: targeted RED pytest
+  - result: PASS as expected failure (`12 failed, 25 passed`)
+  - command: targeted GREEN pytest
+  - result: PASS (`37 passed`)
+  - command: `python3 -m py_compile /Users/cc/.local/share/hermes-agent-v0.14.0/lib/python3.11/site-packages/gateway/run.py`
+  - result: PASS before and after reload
+  - command: `env PYTHONPATH=/Users/cc/.hermes/ops/.pytest-deps python3 -m pytest /Users/cc/.hermes/ops/tests`
+  - result: PASS (`59 passed`)
+  - command: `git diff --check`
+  - result: PASS
+  - command: targeted high-confidence secret scan
+  - result: PASS (`findings=0`, excluding known test sentinel `REDACTED_CANARY_SHOULD_NOT_LOG`)
+  - command: `/Users/cc/.hermes/ops/bin/hermes-ops run --phase LANG-M6 --risk service-change -- hermes gateway restart`
+  - result: PASS (`EXECUTED`, exit code `0`; PID/runs `47246/12` -> `18954/14`)
+  - command: local reset-format canary
+  - result: PASS (`🪄 新会话已开始。`, `🫪 模型`, `❤️ 服务商`, `💭 上下文`, `💫 提示`; no raw reset keys; slash commands preserved)
+- Layer state:
+  - B-layer enabled: `hermes-language-layer` enabled and `b_enabled: true`
+  - A-layer disabled: `a_enabled: false`
+  - local model/Ollama disabled: `local_model_enabled: false`
+- Not executed:
+  - No Telegram message sent by Codex.
+  - No slash command executed by Codex.
+  - No direct raw `hermes gateway restart`; reload used `hermes-ops` gate.
+  - No `launchctl enable/bootstrap/bootout`.
+  - No provider/model/credential/config/env change.
+  - No commit or push.
+- Risks:
+  - Manual Telegram `/new` validation is pending and must be performed by the operator.
+  - M17 remains a local site-packages patch and may be overwritten by a Hermes package update.
+- Next task: operator manually sends `/new` and confirms live Telegram output matches the icon-palette canary.
+
+### Update 2026-05-30 11:30:39 CST — LANG-M17-final-operator-telegram-finalization
+
+- Status: DONE
+- Final decision: GO
+- Operator `/new` observation:
+  - `🪄 新会话已开始。`
+  - `🫪 模型：deepseek-chat`
+  - `❤️ 服务商：deepseek`
+  - `💭 上下文：1.0M tokens (detected)`
+  - `💫 提示：新会话已就绪，可以直接发送下一条消息。`
+- PASS criteria:
+  - no `gateway.reset.header_default`
+  - no `gateway.reset.tip`
+  - tip body is Chinese
+  - `deepseek-chat`, `deepseek`, and context tokens are preserved
+  - requested icon palette is satisfied
+- Final icon palette:
+  - `🪄` reset/new
+  - `💫` tip
+  - `🧭` gateway
+  - `🫪` model
+  - `❤️` provider
+  - `💭` context
+  - `🖥️` terminal
+  - `⚙️` process
+  - `🌐` browser
+  - `📄` file
+  - `🧰` tool
+  - `⏳` running
+  - `✅` done
+  - `⚠️` notice
+  - `⛔` interrupted
+- Files changed:
+  - /Users/cc/.hermes/docs/ai-plan/07_STATUS.md
+  - /Users/cc/.hermes/docs/ai-plan/08_DECISIONS.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-validation-summary.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-icon-palette-refinement.md
+- Evidence:
+  - Real operator `/new` observation supplied in-thread.
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-final-status.md
+  - /Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M17-new-reset-header-metadata-polish/M17-validation-summary.md
+- Validation:
+  - command: `hermes gateway status`
+  - result: PASS (service loaded, PID `18954`)
+  - command: `hermes plugins list`
+  - result: PASS (`hermes-language-layer` enabled)
+  - command: `hermes config check`
+  - result: PASS (config version `23`; key names only, no values recorded)
+  - command: `git status --short`
+  - result: PASS (only expected M17 repo-side docs/tests/patch artifacts modified or untracked)
+  - command: `git diff --check`
+  - result: PASS
+  - command: `gitleaks detect --no-git --source <intended-commit-file> --redact --log-level error`
+  - result: PASS for all intended commit files
+- Not executed:
+  - No code edits in this finalization step.
+  - No gateway reload/restart.
+  - No Telegram messages sent by Codex.
+  - No slash commands executed by Codex.
+  - No A-layer enablement.
+  - No Ollama/local model call.
+  - No provider/model/credential/config/env/auth/session/log/state/cache/PID/lock changes.
+  - No site-packages files staged for commit.
+- Risks:
+  - M17 includes a local site-packages runtime patch that may be overwritten by a Hermes package update; repo commit contains only docs/tests/patch artifacts.
+- Next task: stage only requested repo-side files, run staged checks, commit, and push `origin main`.

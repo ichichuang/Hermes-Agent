@@ -17,10 +17,11 @@ DEFAULT_TIMEOUT_MS = 5000
 
 ICON_PALETTE = {
     "gateway": "🧭",
-    "model": "🧠",
-    "provider": "🔌",
-    "context": "📚",
-    "terminal": "🖥",
+    "reset": "🪄",
+    "model": "🫪",
+    "provider": "❤️",
+    "context": "💭",
+    "terminal": "🖥️",
     "process": "⚙️",
     "browser": "🌐",
     "file": "📄",
@@ -29,7 +30,7 @@ ICON_PALETTE = {
     "done": "✅",
     "notice": "⚠️",
     "interrupted": "⛔",
-    "tip": "✨",
+    "tip": "💫",
 }
 
 PROTECTED_LITERAL_TOKENS = (
@@ -396,8 +397,8 @@ def _rewrite_gateway_notice_line(line: str) -> str | None:
 def _rewrite_reset_key_or_tip_line(line: str) -> str | None:
     stripped = line.strip()
     reset_rewrites = {
-        "gateway.reset.header_default": f"{ICON_PALETTE['gateway']} 新会话已开始。",
-        "gateway.reset.header_new": f"{ICON_PALETTE['gateway']} 新会话已创建。",
+        "gateway.reset.header_default": f"{ICON_PALETTE['reset']} 新会话已开始。",
+        "gateway.reset.header_new": f"{ICON_PALETTE['reset']} 新会话已创建。",
         "gateway.reset.tip": f"{ICON_PALETTE['tip']} 提示：新会话已就绪。",
     }
     if stripped in reset_rewrites:

@@ -73,7 +73,7 @@ def test_b_layer_m12_rewrites_gateway_reset_keys_and_tip_icon() -> None:
     assert result.changed is True
     assert "gateway.reset.header_default" not in result.text
     assert "gateway.reset.tip" not in result.text
-    assert language_layer.ICON_PALETTE["gateway"] in result.text
+    assert language_layer.ICON_PALETTE["reset"] in result.text
     assert language_layer.ICON_PALETTE["tip"] in result.text
     assert "新会话" in result.text
     assert "提示" in result.text
@@ -112,7 +112,7 @@ def test_b_layer_m12_normalizes_tool_trace_icons() -> None:
     result = render_b_layer(text)
     assert result.changed is True
     assert result.text.splitlines() == [
-        '🖥 terminal: "pwd"',
+        '🖥️ terminal: "pwd"',
         "🌐 browser_navigate...",
         "⚙️ background_process: running",
         "📄 read_file(/Users/cc/.hermes/config.yaml)",
@@ -130,9 +130,9 @@ def test_b_layer_m12_rewrites_model_provider_context_header_without_touching_nam
     assert "deepseek-chat" in result.text
     assert "DeepSeek" in result.text
     assert "128000 tokens" in result.text
-    assert "🧠 模型" in result.text
-    assert "🔌 服务商" in result.text
-    assert "📚 上下文" in result.text
+    assert "🫪 模型" in result.text
+    assert "❤️ 服务商" in result.text
+    assert "💭 上下文" in result.text
 
 
 def test_b_layer_m12_replaces_legacy_tip_icon_and_preserves_tokens() -> None:
@@ -143,12 +143,47 @@ def test_b_layer_m12_replaces_legacy_tip_icon_and_preserves_tokens() -> None:
     result = render_b_layer(text)
     assert result.changed is True
     assert "💡 Tip:" not in result.text
-    assert "✨ 提示：" in result.text
+    assert "💫 提示：" in result.text
     assert "/Users/cc/.hermes/config.yaml" in result.text
     assert "https://example.com/docs" in result.text
     assert "display.language" in result.text
     assert "deepseek-chat" in result.text
     assert "DeepSeek" in result.text
+
+
+def test_b_layer_icon_palette_and_protected_tokens_stay_stable() -> None:
+    assert language_layer.ICON_PALETTE["reset"] == "🪄"
+    assert language_layer.ICON_PALETTE["model"] == "🫪"
+    assert language_layer.ICON_PALETTE["provider"] == "❤️"
+    assert language_layer.ICON_PALETTE["context"] == "💭"
+    assert language_layer.ICON_PALETTE["tip"] == "💫"
+
+    text = (
+        "Tip: Check /Users/cc/.hermes/config.yaml, visit https://example.com/docs, "
+        "use /status, and keep display.language, json.model, yaml.provider, "
+        "deepseek-chat, and DeepSeek unchanged."
+    )
+    result = render_b_layer(text)
+
+    assert result.changed is True
+    assert "💫 提示：" in result.text
+    assert "/Users/cc/.hermes/config.yaml" in result.text
+    assert "https://example.com/docs" in result.text
+    assert "/status" in result.text
+    assert "display.language" in result.text
+    assert "json.model" in result.text
+    assert "yaml.provider" in result.text
+    assert "deepseek-chat" in result.text
+    assert "DeepSeek" in result.text
+
+
+def test_b_layer_preserves_fenced_code_block_model_provider_names() -> None:
+    text = 'Use this exactly:\n```json\n{"model": "deepseek-chat", "provider": "DeepSeek"}\n```'
+    result = render_b_layer(text)
+
+    assert result.text == text
+    assert result.changed is False
+    assert '```json\n{"model": "deepseek-chat", "provider": "DeepSeek"}\n```' in result.text
 
 
 def test_b_layer_preserves_python_fence_without_execution_output() -> None:
