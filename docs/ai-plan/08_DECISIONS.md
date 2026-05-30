@@ -283,3 +283,11 @@ Codex 如作出任何新架构选择，必须追加如下格式：
 - Alternatives considered: 启用 A-layer；调用 Ollama/local model 做泛化翻译；修改 Hermes core/site-packages；由 Codex 发送 Telegram 或 slash command live-test；直接运行 raw `hermes gateway restart`；修改 provider/model/settings/credentials/config/env。
 - Consequence: M18 通过 TDD RED/GREEN、full pytest、config/plugins/gateway checks、diff check、targeted gitleaks、rollback snapshot、gated reload 和 post-reload local plugin canaries；gateway PID `85253` -> `57682`；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled。未修改 Hermes core/site-packages、provider/model/settings/credentials/config/env/auth/session/log/state/cache/PID/lock 文件。
 - Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M18-tool-terminal-chinese-and-codeblock-polish/reports/M18-final-status.md`
+
+## ADR-0036 — LANG-M19 真实截图观察后给出 GO_WITH_POLISH
+
+- Decision: 将 `LANG-M19-post-M18-live-observation` 从 `BLOCKED_OBSERVATIONS_INCOMPLETE` 更新为 `GO_WITH_POLISH`；M19-01 tool/terminal Chinese rendering 与 M19-02 fenced code block preservation 均分类为 `NEEDS_POLISH`，并按用户授权只提交 `docs/ai-plan/07_STATUS.md` 与 `docs/ai-plan/08_DECISIONS.md`。
+- Reason: 操作员提供了 screenshot-derived observations：M19-01 中 `Hermes 返回了英文说明：` 混合前缀不再出现，但查看 Hermes status 后的 final reply body 仍大多为英文；M19-02 中 `print("hello hermes")` 和 fenced Python block 可见且未被破坏，但 assistant 在用户明确要求不执行时仍推断/解释 execution result。未观察到 protected-token corruption 或 gateway issue。
+- Alternatives considered: 因两项均需 polish 而给出 `NO-GO`；继续沿用旧 placeholder-based `BLOCKED`；由 Codex 发送 Telegram 或运行 slash command 补测；启用 A-layer；调用 Ollama/local model；执行 gateway restart/reload；修改 Hermes core/site-packages、provider/model/settings/credentials/config/env。
+- Consequence: M19 以 `GO_WITH_POLISH` 关闭；B-layer 保持 enabled，A-layer 保持 disabled，local model/Ollama 保持 disabled，gateway PID `57682` 前后稳定。后续 polish 应聚焦：tool/terminal final replies 完整中文渲染、避免 large English final bodies、精确保留 fenced code blocks、除非明确请求否则不推断 execution output；`/start` unknown-command 英文响应另记为未来 gateway/slash-message localization polish，不作为 M19 失败。
+- Evidence: `/Users/cc/HermesArchive/hermes-langlayer-goal-20260529_005838/phases/LANG-M19-post-M18-live-observation/reports/M19-final-status.md`
