@@ -5,7 +5,18 @@ import re
 from pathlib import Path
 from typing import Any
 
-from common import HERMES_HOME, now_iso, phase_dir_name, write_json, write_text, file_mode, mtime_iso, sha256_file
+from common import (
+    HERMES_HOME,
+    assert_archive_contained,
+    ensure_dir,
+    file_mode,
+    mtime_iso,
+    now_iso,
+    phase_dir_name,
+    sha256_file,
+    write_json,
+    write_text,
+)
 
 SECRET_KEY_PATTERN = re.compile(
     r"(API_KEY|TOKEN|SECRET|AUTH|COOKIE|PRIVATE_KEY|BOT_TOKEN|APP_SECRET)",
@@ -189,8 +200,8 @@ def scan_evidence_for_sensitive_values(
     scope_prefix: str = "D5",
 ) -> dict[str, Any]:
     """Scan generated D5 evidence without returning matched secret values."""
-    phase_root = archive_root / "phases" / phase_dir_name(phase)
-    phase_root.mkdir(parents=True, exist_ok=True)
+    phase_root = assert_archive_contained(archive_root / "phases" / phase_dir_name(phase), archive_root)
+    ensure_dir(phase_root)
     evidence_roots = [
         archive_root / "phases",
         archive_root / "reports",

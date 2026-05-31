@@ -11,6 +11,10 @@ from common import (
     HERMES_HOME,
     LATEST_SYMLINK,
     OPS_REPORTS_HOME,
+    assert_archive_contained,
+    assert_archive_home_allowed,
+    assert_archive_root_under_home,
+    ensure_dir,
     now_iso,
     status_table_rows,
     truthy_env,
@@ -22,8 +26,8 @@ from redaction import env_key_names, summarize_sensitive_file, yaml_key_names
 
 
 def build_security_baseline(archive_root: Path, *, phase: str, hermes_home: Path = HERMES_HOME) -> dict[str, Any]:
-    phase_root = archive_root / "phases" / f"{phase}-security-baseline"
-    phase_root.mkdir(parents=True, exist_ok=True)
+    phase_root = assert_archive_contained(archive_root / "phases" / f"{phase}-security-baseline", archive_root)
+    ensure_dir(phase_root)
     env_summary = summarize_sensitive_file(hermes_home / ".env")
     config_keys = yaml_key_names(hermes_home / "config.yaml")
     findings: list[dict[str, str]] = []
@@ -76,12 +80,14 @@ def build_security_baseline(archive_root: Path, *, phase: str, hermes_home: Path
 
 
 def refresh_archive_index(archive_root: Path) -> dict[str, Any]:
-    OPS_REPORTS_HOME.mkdir(parents=True, exist_ok=True)
+    archive_home = assert_archive_home_allowed(ARCHIVE_HOME)
+    archive_root = assert_archive_root_under_home(archive_root, archive_home)
+    ensure_dir(OPS_REPORTS_HOME)
     if LATEST_SYMLINK.is_symlink() or LATEST_SYMLINK.exists():
         LATEST_SYMLINK.unlink()
     LATEST_SYMLINK.symlink_to(archive_root)
     archives = sorted(
-        [path for path in ARCHIVE_HOME.iterdir() if path.is_dir() and path.name.startswith("hermes-new-")],
+        [path for path in archive_home.iterdir() if path.is_dir() and path.name.startswith("hermes-new-")],
         key=lambda item: item.name,
     )
     payload = {
@@ -89,7 +95,7 @@ def refresh_archive_index(archive_root: Path) -> dict[str, Any]:
         "latest": str(archive_root),
         "archives": [str(path) for path in archives],
     }
-    write_json(ARCHIVE_HOME / "index.json", payload)
+    write_json(archive_home / "index.json", payload)
     return payload
 
 

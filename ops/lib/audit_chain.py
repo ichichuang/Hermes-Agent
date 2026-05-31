@@ -7,15 +7,15 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
-from common import now_iso, write_json
+from common import append_jsonl, assert_archive_contained, now_iso, write_bytes, write_json
 from evidence_pack import audit_path
 
 
 def ensure_audit_key(archive_root: Path) -> Path:
     audit_root = audit_path(archive_root)
-    key_path = audit_root / "ops-audit.key"
+    key_path = assert_archive_contained(audit_root / "ops-audit.key", archive_root)
     if not key_path.exists():
-        key_path.write_bytes(secrets.token_bytes(32))
+        write_bytes(key_path, secrets.token_bytes(32))
         key_path.chmod(0o600)
     return key_path
 
@@ -31,7 +31,7 @@ def _entry_hmac(key: bytes, prev_hmac: str, payload: dict[str, Any]) -> str:
 
 def append_event(archive_root: Path, *, phase: str, event: str, details: dict[str, Any] | None = None) -> dict[str, Any]:
     audit_root = audit_path(archive_root)
-    chain_path = audit_root / "ops-audit.jsonl"
+    chain_path = assert_archive_contained(audit_root / "ops-audit.jsonl", archive_root)
     previous = "GENESIS"
     if chain_path.exists():
         last_line = [line for line in chain_path.read_text(encoding="utf-8").splitlines() if line][-1]
@@ -44,8 +44,7 @@ def append_event(archive_root: Path, *, phase: str, event: str, details: dict[st
         "prev_hmac": previous,
     }
     payload["entry_hmac"] = _entry_hmac(_load_key(archive_root), previous, payload)
-    with chain_path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    append_jsonl(chain_path, payload)
     return payload
 
 

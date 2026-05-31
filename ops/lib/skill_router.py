@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from common import HERMES_HOME, append_jsonl
+from common import HERMES_HOME, append_jsonl, assert_archive_contained, write_json
 from evidence_pack import ensure_phase
 
 
@@ -34,6 +33,6 @@ def resolve_skill(skill_name: str) -> dict[str, Any]:
 def record_resolution(archive_root: Path, *, phase: str, skill_name: str) -> dict[str, Any]:
     resolution = resolve_skill(skill_name)
     phase_root = ensure_phase(archive_root, phase)
-    append_jsonl(phase_root / "skill-router-resolutions.jsonl", resolution)
-    (phase_root / "skill-router-last.json").write_text(json.dumps(resolution, indent=2) + "\n", encoding="utf-8")
+    append_jsonl(assert_archive_contained(phase_root / "skill-router-resolutions.jsonl", archive_root), resolution)
+    write_json(assert_archive_contained(phase_root / "skill-router-last.json", archive_root), resolution)
     return resolution

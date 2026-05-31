@@ -15,6 +15,13 @@ OPS_HOME = HERMES_HOME / "ops"
 OPS_REPORTS_HOME = OPS_HOME / "reports"
 LATEST_SYMLINK = OPS_REPORTS_HOME / "latest"
 DEFAULT_HERMES_LABEL = "ai.hermes.gateway"
+FORBIDDEN_WRITE_ROOTS = [
+    Path("/Users/cc/.agents/skills"),
+    Path("/Users/cc/.codex/skills"),
+    Path("/Users/cc/.codex/plugins/cache"),
+    Path("/Users/cc/.ai/views/codex"),
+    Path("/Users/cc/.hermes/skills"),
+]
 
 PHASE_SLUGS = {
     "P0.A0": "bootstrap",
@@ -80,20 +87,69 @@ def now_token() -> str:
     return now().strftime("%Y%m%d_%H%M%S")
 
 
+def resolve_path(path: Path) -> Path:
+    return Path(path).expanduser().resolve(strict=False)
+
+
+def is_relative_to_path(child: Path, parent: Path) -> bool:
+    child_resolved = resolve_path(child)
+    parent_resolved = resolve_path(parent)
+    return child_resolved == parent_resolved or child_resolved.is_relative_to(parent_resolved)
+
+
+def assert_not_forbidden_write_path(path: Path) -> Path:
+    resolved = resolve_path(path)
+    for forbidden in FORBIDDEN_WRITE_ROOTS:
+        forbidden_resolved = resolve_path(forbidden)
+        if resolved == forbidden_resolved or resolved.is_relative_to(forbidden_resolved):
+            raise RuntimeError(f"Refusing to write under forbidden skill/cache path: {resolved}")
+    return resolved
+
+
+def assert_archive_home_allowed(archive_home: Path | None = None) -> Path:
+    return assert_not_forbidden_write_path(archive_home or ARCHIVE_HOME)
+
+
+def assert_archive_root_under_home(archive_root: Path, archive_home: Path | None = None) -> Path:
+    home = assert_archive_home_allowed(archive_home)
+    root = assert_not_forbidden_write_path(archive_root)
+    if not (root == home or root.is_relative_to(home)):
+        raise RuntimeError(f"Refusing active archive root outside configured archive home: {root} not under {home}")
+    return root
+
+
+def assert_archive_contained(path: Path, archive_root: Path) -> Path:
+    resolved = assert_not_forbidden_write_path(path)
+    root = assert_not_forbidden_write_path(archive_root)
+    if not (resolved == root or resolved.is_relative_to(root)):
+        raise RuntimeError(f"Refusing archive write outside active archive root: {resolved} not under {root}")
+    return resolved
+
+
 def ensure_dir(path: Path) -> Path:
+    path = assert_not_forbidden_write_path(path)
     path.mkdir(parents=True, exist_ok=True)
     return path
 
 
 def write_text(path: Path, text: str) -> Path:
+    path = assert_not_forbidden_write_path(path)
     ensure_dir(path.parent)
     path.write_text(text, encoding="utf-8")
     return path
 
 
 def write_json(path: Path, data: Any) -> Path:
+    path = assert_not_forbidden_write_path(path)
     ensure_dir(path.parent)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return path
+
+
+def write_bytes(path: Path, data: bytes) -> Path:
+    path = assert_not_forbidden_write_path(path)
+    ensure_dir(path.parent)
+    path.write_bytes(data)
     return path
 
 
@@ -104,6 +160,7 @@ def read_json(path: Path, default: Any = None) -> Any:
 
 
 def append_jsonl(path: Path, entry: dict[str, Any]) -> Path:
+    path = assert_not_forbidden_write_path(path)
     ensure_dir(path.parent)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -156,14 +213,15 @@ def run_subprocess(command: Sequence[str], *, text: bool = True) -> subprocess.C
     )
 
 
-def latest_archive_root() -> Path | None:
-    if not ARCHIVE_HOME.exists():
+def latest_archive_root(archive_home: Path | None = None) -> Path | None:
+    home = assert_archive_home_allowed(archive_home)
+    if not home.exists():
         return None
     archives = sorted(
-        (path for path in ARCHIVE_HOME.iterdir() if path.is_dir() and path.name.startswith("hermes-new-")),
+        (path for path in home.iterdir() if path.is_dir() and path.name.startswith("hermes-new-")),
         key=lambda item: item.name,
     )
-    return archives[-1] if archives else None
+    return assert_archive_root_under_home(archives[-1], home) if archives else None
 
 
 def status_table_rows(status_path: Path | None = None) -> dict[str, dict[str, str]]:

@@ -8,6 +8,10 @@ from common import (
     HERMES_HOME,
     LATEST_SYMLINK,
     OPS_REPORTS_HOME,
+    assert_archive_contained,
+    assert_archive_home_allowed,
+    assert_archive_root_under_home,
+    assert_not_forbidden_write_path,
     ensure_dir,
     latest_archive_root,
     now_iso,
@@ -22,14 +26,16 @@ PLAN_VERSION = "2026-05-27"
 
 
 def create_archive(archive_root: Path | None = None, *, activate: bool = True) -> Path:
-    archive_root = archive_root or (ARCHIVE_HOME / f"hermes-new-{now_token()}")
+    archive_home = assert_archive_home_allowed(ARCHIVE_HOME)
+    archive_root = archive_root or (archive_home / f"hermes-new-{now_token()}")
+    archive_root = assert_archive_root_under_home(archive_root, archive_home) if activate else assert_not_forbidden_write_path(archive_root)
     ensure_dir(archive_root)
     for name in ("source-inventory", "phases", "ledgers", "audit", "reports"):
-        ensure_dir(archive_root / name)
+        ensure_dir(assert_archive_contained(archive_root / name, archive_root))
     manifest_path = archive_root / "manifest.json"
     if not manifest_path.exists():
         write_json(
-            manifest_path,
+            assert_archive_contained(manifest_path, archive_root),
             {
                 "archive_id": archive_root.name,
                 "created_at": now_iso(),
@@ -49,6 +55,7 @@ def create_archive(archive_root: Path | None = None, *, activate: bool = True) -
 
 
 def activate_archive(archive_root: Path) -> Path:
+    archive_root = assert_archive_root_under_home(archive_root, ARCHIVE_HOME)
     ensure_dir(OPS_REPORTS_HOME)
     if LATEST_SYMLINK.is_symlink() or LATEST_SYMLINK.exists():
         LATEST_SYMLINK.unlink()
@@ -57,9 +64,10 @@ def activate_archive(archive_root: Path) -> Path:
 
 
 def get_active_archive(create: bool = False) -> Path | None:
+    archive_home = assert_archive_home_allowed(ARCHIVE_HOME)
     if LATEST_SYMLINK.is_symlink():
-        return LATEST_SYMLINK.resolve()
-    latest = latest_archive_root()
+        return assert_archive_root_under_home(LATEST_SYMLINK.resolve(strict=False), archive_home)
+    latest = latest_archive_root(archive_home)
     if latest is not None:
         return latest
     if create:
@@ -68,13 +76,13 @@ def get_active_archive(create: bool = False) -> Path | None:
 
 
 def load_manifest(archive_root: Path) -> dict[str, Any]:
-    return read_json(archive_root / "manifest.json", default={}) or {}
+    return read_json(assert_archive_contained(archive_root / "manifest.json", archive_root), default={}) or {}
 
 
 def update_manifest(archive_root: Path, **updates: Any) -> dict[str, Any]:
     manifest = load_manifest(archive_root)
     manifest.update(updates)
-    write_json(archive_root / "manifest.json", manifest)
+    write_json(assert_archive_contained(archive_root / "manifest.json", archive_root), manifest)
     return manifest
 
 
@@ -89,7 +97,7 @@ def register_phase(archive_root: Path, phase: str) -> dict[str, Any]:
 
 
 def phase_path(archive_root: Path, phase: str) -> Path:
-    return archive_root / "phases" / phase_dir_name(phase)
+    return assert_archive_contained(archive_root / "phases" / phase_dir_name(phase), archive_root)
 
 
 def ensure_phase(archive_root: Path, phase: str, *, dry_run: bool = False) -> Path:
@@ -114,16 +122,16 @@ def ensure_phase(archive_root: Path, phase: str, *, dry_run: bool = False) -> Pa
 
 
 def source_inventory_path(archive_root: Path) -> Path:
-    return ensure_dir(archive_root / "source-inventory")
+    return ensure_dir(assert_archive_contained(archive_root / "source-inventory", archive_root))
 
 
 def ledgers_path(archive_root: Path) -> Path:
-    return ensure_dir(archive_root / "ledgers")
+    return ensure_dir(assert_archive_contained(archive_root / "ledgers", archive_root))
 
 
 def audit_path(archive_root: Path) -> Path:
-    return ensure_dir(archive_root / "audit")
+    return ensure_dir(assert_archive_contained(archive_root / "audit", archive_root))
 
 
 def reports_path(archive_root: Path) -> Path:
-    return ensure_dir(archive_root / "reports")
+    return ensure_dir(assert_archive_contained(archive_root / "reports", archive_root))
